@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm Danh mục mới</title>
+</head>
+<body>
+
+<h1>Thêm Danh mục mới</h1>
+
+<form th:action="@{/admin/categories/add}" th:object="${category}" method="post">
+    <div>
+        <label for="name">Tên Danh mục:</label>
+        <input type="text" id="name" th:field="*{name}" required>
+    </div>
+    <br/>
+    <button type="submit">Lưu</button>
+    <a href="/admin/categories">Hủy</a>
+</form>
+
+</body>
+</html>

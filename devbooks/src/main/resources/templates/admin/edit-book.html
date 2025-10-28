@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sửa thông tin Sách</title>
+    <style>
+        body { font-family: sans-serif; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select, textarea { width: 300px; padding: 8px; }
+        button { padding: 10px 15px; }
+    </style>
+</head>
+<body>
+
+<h1>Sửa thông tin Sách</h1>
+
+<form th:action="@{/admin/books/edit/{id}(id=${book.id})}" th:object="${book}" method="post">
+    <div class="form-group">
+        <label for="title">Tiêu đề:</label>
+        <input type="text" id="title" th:field="*{title}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="author">Tác giả:</label>
+        <input type="text" id="author" th:field="*{author}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="price">Giá:</label>
+        <input type="number" id="price" th:field="*{price}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="stockQuantity">Số lượng trong kho:</label>
+        <input type="number" id="stockQuantity" th:field="*{stockQuantity}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="category">Danh mục:</label>
+        <select id="category" th:field="*{category.id}" required>
+            <option value="">-- Chọn Danh mục --</option>
+            <option th:each="cat : ${categories}"
+                    th:value="${cat.id}"
+                    th:text="${cat.name}"></option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="coverImageUrl">URL Ảnh bìa:</label>
+        <input type="text" id="coverImageUrl" th:field="*{coverImageUrl}">
+    </div>
+
+    <div class="form-group">
+        <label for="description">Mô tả:</label>
+        <textarea id="description" th:field="*{description}" rows="5"></textarea>
+    </div>
+
+    <button type="submit">Cập nhật</button>
+    <a href="/admin/books">Hủy</a>
+</form>
+
+</body>
+</html>

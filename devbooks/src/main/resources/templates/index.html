@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DevBooks - Trang chủ</title>
+</head>
+<body>
+
+<h1>Chào mừng đến với DevBooks! 📚</h1>
+<h2>Sách hiện có:</h2>
+<hr>
+
+<div th:each="book : ${books}">
+    <h3 th:text="${book.title}">Tên Sách Mẫu</h3>
+    <p>
+        <span>Tác giả: </span>
+        <b th:text="${book.author}">Tên Tác Giả</b>
+    </p>
+    <p>
+        <span>Giá: </span>
+        <span th:text="${book.price}">0.00</span>
+        <span> VNĐ</span>
+    </p>
+    <hr>
+</div>
+
+<div th:if="${books.isEmpty()}">
+    <p>Hiện chưa có sách nào trong cửa hàng.</p>
+</div>
+
+</body>
+</html>

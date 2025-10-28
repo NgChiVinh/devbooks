@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Đơn hàng</title>
+</head>
+<body>
+
+<h1>Danh sách Đơn hàng</h1>
+
+<div th:if="${orders.isEmpty()}">
+    <p>Chưa có đơn hàng nào.</p>
+</div>
+
+<table border="1" th:if="${!orders.isEmpty()}">
+    <thead>
+    <tr>
+        <th>ID Đơn hàng</th>
+        <th>Tên Khách hàng</th>
+        <th>Ngày đặt</th>
+        <th>Tổng tiền</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}">1</td>
+        <td th:text="${order.user.fullName}">Nguyễn Văn A</td>
+        <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">01-01-2025</td>
+        <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">100,000 VNĐ</td>
+        <td th:text="${order.status}">Chờ xử lý</td>
+        <td>
+            <a th:href="@{/admin/orders/{id}(id=${order.id})}">Xem Chi tiết</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
