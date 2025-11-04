@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sửa vai trò Người dùng</title>
+</head>
+<body>
+
+<h1>Sửa vai trò cho: <span th:text="${user.email}"></span></h1>
+
+<form th:action="@{/admin/users/edit/{id}(id=${user.id})}" method="post">
+    <div>
+        <label for="role">Chọn vai trò:</label>
+        <select id="role" name="role" th:field="${user.role}">
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+        </select>
+    </div>
+    <br/>
+    <button type="submit">Cập nhật</button>
+    <a href="/admin/users">Hủy</a>
+</form>
+
+</body>
+</html>

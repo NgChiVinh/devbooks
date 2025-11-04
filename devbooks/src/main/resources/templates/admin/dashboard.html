@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Thống kê</title>
+</head>
+<body>
+<h1>Dashboard Thống kê 📊</h1>
+<hr>
+
+<h2>Tổng quan</h2>
+<div>
+    <h3>Tổng doanh thu:</h3>
+    <p th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</p>
+</div>
+<div>
+    <h3>Tổng số đơn hàng:</h3>
+    <p th:text="${totalOrders}">0</p>
+</div>
+
+<hr>
+<h2>Top 5 Sách Bán Chạy Nhất</h2>
+<table border="1" style="width: 50%;">
+    <thead>
+    <tr>
+        <th>ID Sách</th>
+        <th>Tên sách</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${topSellingBooks}">
+        <td th:text="${book.id}">1</td>
+        <td th:text="${book.title}">Tên sách</td>
+    </tr>
+    </tbody>
+</table>
+<div th:if="${topSellingBooks == null OR topSellingBooks.isEmpty()}">
+    <p>Chưa có dữ liệu sách bán chạy.</p>
+</div>
+<hr>
+<h3>Quản lý</h3>
+<a href="/admin/books">Quản lý Sách</a> |
+<a href="/admin/categories">Quản lý Danh mục</a> |
+<a href="/admin/users">Quản lý Người dùng</a> |
+<a href="/admin/orders">Quản lý Đơn hàng</a>
+
+</body>
+</html>

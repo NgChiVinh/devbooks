@@ -31,6 +31,8 @@
         <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">100,000 VNĐ</td>
         <td th:text="${order.status}">Chờ xử lý</td>
         <td>
+            <a th:href="@{/admin/orders/edit/{id}(id=${order.id})}">Sửa trạng thái</a>
+            |
             <a th:href="@{/admin/orders/{id}(id=${order.id})}">Xem Chi tiết</a>
         </td>
     </tr>

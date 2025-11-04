@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${book.title}"></title>
+
+    <style>
+        .book-detail { display: flex; gap: 20px; }
+        .book-cover img { max-width: 300px; height: auto; }
+        .book-info { flex-grow: 1; }
+    </style>
+</head>
+<body>
+
+<h1>Chi tiết sách</h1>
+<hr>
+
+<div class="book-detail" th:object="${book}">
+
+    <div class="book-cover">
+        <img th:src="*{coverImageUrl}" th:alt="*{title}" />
+    </div>
+
+    <div class="book-info">
+        <h2 th:text="*{title}">Tên Sách</h2>
+        <p><strong>Tác giả:</strong> <span th:text="*{author}">Tên Tác Giả</span></p>
+        <p><strong>Danh mục:</strong> <span th:text="*{category.name}">Tên Danh mục</span></p>
+        <p><strong>Giá:</strong> <span th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">100,000 VNĐ</span></p>
+        <p><strong>Số lượng còn lại:</strong> <span th:text="*{stockQuantity}">50</span></p>
+        <hr>
+        <h3>Mô tả:</h3>
+        <p th:text="*{description}">Mô tả chi tiết về cuốn sách...</p>
+        <hr>
+
+        <form th:action="@{/cart/add}" method="post">
+            <input type="hidden" name="bookId" th:value="*{id}" />
+
+            <label for="quantity">Số lượng:</label>
+            <input type="number" name="quantity" id="quantity" value="1" min="1" th:max="*{stockQuantity}" style="width: 60px;" />
+
+            <button type="submit">Thêm vào giỏ hàng</button>
+        </form>
+
+    </div>
+</div>
+
+<br>
+<a href="/">Quay lại trang chủ</a>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán Đơn hàng</title>
+    <style>
+        .container { max-width: 800px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"] { width: 100%; padding: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Xác nhận Đơn hàng</h1>
+
+    <h3>Tóm tắt đơn hàng</h3>
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Tổng phụ</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${cartItems}">
+            <td th:text="${item.book.title}">Tên sách</td>
+            <td th:text="${item.quantity}">1</td>
+            <td th:text="${#numbers.formatDecimal(item.getSubtotal(), 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr style="font-weight: bold;">
+            <td colspan="2">Tổng cộng:</td>
+            <td th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+        </tr>
+        </tfoot>
+    </table>
+
+    <hr>
+
+    <h3>Thông tin Giao hàng</h3>
+    <form th:action="@{/order/submit}" method="post">
+
+        <div class="form-group">
+            <label for="fullName">Họ và Tên:</label>
+            <input type="text" id="fullName" name="fullName" th:value="${currentUser != null ? currentUser.fullName : ''}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="shippingAddress">Địa chỉ Giao hàng:</label>
+            <input type="text" id="shippingAddress" name="shippingAddress" th:value="${currentUser != null ? currentUser.address : ''}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phoneNumber">Số điện thoại:</label>
+            <input type="text" id="phoneNumber" name="phoneNumber" th:value="${currentUser != null ? currentUser.phoneNumber : ''}" required>
+        </div>
+
+        <button type="submit" style="padding: 15px; font-size: 1.1em; background-color: green; color: white;">
+            Xác nhận Đặt hàng
+        </button>
+    </form>
+</div>
+
+</body>
+</html>

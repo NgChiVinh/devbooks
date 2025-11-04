@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật Trạng thái Đơn hàng</title>
+</head>
+<body>
+
+<h1>Cập nhật Trạng thái cho Đơn hàng #<span th:text="${order.id}"></span></h1>
+
+<form th:action="@{/admin/orders/edit/{id}(id=${order.id})}" method="post">
+    <div>
+        <label for="status">Chọn Trạng thái:</label>
+        <select id="status" name="status" th:field="${order.status}">
+            <option th:each="stat : ${statuses}"
+                    th:value="${stat}"
+                    th:text="${stat}"></option>
+        </select>
+    </div>
+    <br/>
+    <button type="submit">Cập nhật</button>
+    <a href="/admin/orders">Hủy</a>
+</form>
+
+</body>
+</html>

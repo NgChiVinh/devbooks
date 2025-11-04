@@ -4,16 +4,18 @@ import com.devbooks.entity.User;
 import com.devbooks.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService; // <-- Thêm import này
-import org.springframework.security.core.userdetails.UsernameNotFoundException; // <-- Thêm import này
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class UserService implements UserDetailsService { // <-- 1. Thêm "implements UserDetailsService"
+public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -40,7 +42,7 @@ public class UserService implements UserDetailsService { // <-- 1. Thêm "implem
         userRepository.deleteById(id);
     }
 
-    // <-- 2. Thêm phương thức BẮT BUỘC này
+    // (Hàm cũ - giữ nguyên)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
@@ -54,4 +56,31 @@ public class UserService implements UserDetailsService { // <-- 1. Thêm "implem
                 Collections.singletonList(authority)
         );
     }
+
+    // (Hàm cũ - giữ nguyên)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    // === BẮT ĐẦU PHẦN CODE MỚI ===
+
+    /**
+     * Lấy thông tin 1 user bằng ID (dùng cho form Sửa)
+     */
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    /**
+     * Cập nhật vai trò (role) cho user (xử lý Sửa)
+     */
+    public void updateUserRole(Long id, String role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        user.setRole(role); // Cập nhật vai trò mới
+        userRepository.save(user); // Lưu lại
+    }
+
+    // === KẾT THÚC PHẦN CODE MỚI ===
 }

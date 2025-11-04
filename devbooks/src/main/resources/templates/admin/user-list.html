@@ -25,7 +25,7 @@
         <td th:text="${user.email}">email@example.com</td>
         <td th:text="${user.role}">USER</td>
         <td>
-            <a href="#">Sửa vai trò</a>
+            <a th:href="@{/admin/users/edit/{id}(id=${user.id})}">Sửa vai trò</a>
 
             <form th:action="@{/admin/users/delete/{id}(id=${user.id})}" method="post" style="display:inline;">
                 <button type="submit" onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?')">Xóa</button>
