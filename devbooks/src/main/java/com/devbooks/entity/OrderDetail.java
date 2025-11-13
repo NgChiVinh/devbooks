@@ -2,6 +2,9 @@ package com.devbooks.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+// ✅ THÊM 2 IMPORT NÀY
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Data
 @Entity
@@ -24,5 +27,6 @@ public class OrderDetail {
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE) // ✅ THÊM DÒNG NÀY
     private Book book;
 }

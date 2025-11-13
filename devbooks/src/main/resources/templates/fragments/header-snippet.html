@@ -1,0 +1,57 @@
+<div th:fragment="navbar"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+
+    <nav class="navbar">
+        <div class="navbar-container">
+
+            <a th:href="@{/}" class="brand">
+                <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo" class="logo-img"/>
+            </a>
+
+            <ul class="navbar-menu">
+                <li><a th:href="@{/}" class="active">Trang Chủ</a></li>
+                <li><a th:href="@{/products}">Sản phẩm</a></li>
+                <li><a th:href="@{/about}">Giới thiệu</a></li>
+                <li><a th:href="@{/contact}">Liên hệ</a></li>
+                <li sec:authorize="hasRole('ROLE_ADMIN')"><a th:href="@{/admin/dashboard}">Admin</a></li>
+            </ul>
+
+            <div class="navbar-icons">
+
+                <a th:href="@{#}"><i class="fas fa-search"></i></a>
+
+                <a th:href="@{/cart}">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count" id="cart-item-count" th:text="${cartItemCount}">0</span>
+                </a>
+
+                <div class="navbar-user-menu">
+
+                    <span sec:authorize="!isAuthenticated()">
+                        <a href="#" id="user-menu-button" class="navbar-icon-link">
+                            <i class="fas fa-user"></i>
+                        </a>
+                        <div id="user-dropdown" class="navbar-dropdown">
+                            <a th:href="@{/login}" class="dropdown-item">Đăng nhập</a>
+                            <a th:href="@{/register}" class="dropdown-item">Đăng ký</a>
+                        </div>
+                    </span>
+
+                    <span sec:authorize="isAuthenticated()">
+                        <a href="#" id="user-menu-button" class="navbar-icon-link">
+                            <i class="fas fa-user-check"></i>
+                        </a>
+                        <div id="user-dropdown" class="navbar-dropdown">
+                            <a th:href="@{/my-orders}" class="dropdown-item">Đơn hàng của tôi</a>
+                            <a th:href="@{/profile}" class="dropdown-item">Tài khoản</a>
+                            <hr class="dropdown-divider">
+                            <a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a>
+                        </div>
+                    </span>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>

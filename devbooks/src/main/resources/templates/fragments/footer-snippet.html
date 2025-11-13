@@ -1,0 +1,39 @@
+<footer th:fragment="footer" class="site-footer-light">
+    <div class="container">
+        <div class="footer-grid-light">
+
+            <div class="footer-column about">
+                <a th:href="@{/}" class="footer-brand">
+                    <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo" class="footer-logo-img"/>
+                </a>
+                <p class="footer-description">
+                    Nơi cung cấp tri thức lập trình hàng đầu. Cập nhật sách mới và công nghệ mới mỗi ngày.
+                </p>
+                <div class="footer-contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>(+84) 336 567 177</span> </div>
+                <div class="footer-social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-column links">
+                <h4>Liên Kết Nhanh</h4>
+                <ul>
+                    <li><a th:href="@{/}">Trang Chủ</a></li>
+                    <li><a th:href="@{/products}">Sản Phẩm</a></li>
+                    <li><a th:href="@{/about}">Giới Thiệu</a></li>
+                    <li><a th:href="@{/contact}">Liên Hệ</a></li>
+                    <li sec:authorize="hasRole('ROLE_ADMIN')"><a th:href="@{/admin/dashboard}">Admin</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer-bottom-light">
+        <p>&copy; 2025 DevBooks. | Đồ án Java Spring Boot</p>
+    </div>
+</footer>

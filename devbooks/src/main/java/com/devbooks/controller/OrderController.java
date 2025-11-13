@@ -21,6 +21,8 @@ public class OrderController {
     @Autowired
     private UserService userService;
 
+    // (CartService vẫn có thể được giữ lại ở đây nếu bạn cần
+    // hiển thị trang giỏ hàng, nhưng không truyền vào createOrder)
     @Autowired
     private CartService cartService;
 
@@ -32,17 +34,17 @@ public class OrderController {
     public String submitOrder(
             @RequestParam("shippingAddress") String shippingAddress,
             @RequestParam("phoneNumber") String phoneNumber,
-            Principal principal) { // Principal dùng để lấy thông tin user đã đăng nhập
+            Principal principal) {
 
         // 1. Lấy thông tin người dùng đang đăng nhập
         User currentUser = userService.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2. Gọi OrderService để tạo đơn hàng (sẽ làm ở bước sau)
-        orderService.createOrder(currentUser, cartService, shippingAddress, phoneNumber);
+        // 2. ✅ SỬA LỖI: Gọi hàm createOrder với 3 tham số (đã xóa cartService)
+        orderService.createOrder(currentUser, shippingAddress, phoneNumber);
 
-        // 3. Xóa giỏ hàng (session) sau khi đã đặt hàng thành công
-        cartService.clearCart();
+        // 3. ✅ SỬA LỖI: Xóa dòng cartService.clearCart() ở đây
+        // (Vì OrderService đã tự động xóa giỏ hàng sau khi tạo đơn)
 
         // 4. Chuyển hướng đến trang thông báo thành công
         return "redirect:/order/success";

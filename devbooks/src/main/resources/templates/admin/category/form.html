@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <title th:text="${category.id == null} ? 'Thêm Danh mục mới' : 'Sửa Danh mục'">Form Danh mục</title>
+
+    <style>
+        body { font-family: sans-serif; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 300px; padding: 8px; }
+        button { padding: 10px 15px; }
+    </style>
+</head>
+<body>
+
+<h1 th:text="${category.id == null} ? 'Thêm Danh mục mới' : 'Sửa Danh mục'">Form Danh mục</h1>
+
+<form th:action="${category.id == null} ? @{/admin/categories/add} : @{/admin/categories/edit/{id}(id=${category.id})}"
+      th:object="${category}"
+      method="post">
+
+    <div class="form-group">
+        <label for="name">Tên Danh mục:</label>
+        <input type="text" id="name" th:field="*{name}" required>
+    </div>
+
+    <br/>
+
+    <button type="submit" th:text="${category.id == null} ? 'Lưu' : 'Cập nhật'">Lưu</button>
+    <a href="/admin/categories">Hủy</a>
+</form>
+
+</body>
+</html>

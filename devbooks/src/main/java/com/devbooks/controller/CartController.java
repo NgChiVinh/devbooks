@@ -1,98 +1,94 @@
 package com.devbooks.controller;
 
-import com.devbooks.cart.CartService;
 import com.devbooks.entity.User;
+import com.devbooks.cart.CartService;
+import com.devbooks.cart.CartItem;
 import com.devbooks.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.security.core.Authentication; // (Import này hiện không dùng, nhưng có thể giữ lại)
-import org.springframework.security.core.context.SecurityContextHolder; // (Import này hiện không dùng)
-import java.security.Principal;
+import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
+import java.util.Map;
+import java.util.List;
 
 @Controller
+@RequestMapping("/cart")
 public class CartController {
 
     @Autowired
     private CartService cartService;
 
-    // === PHẦN THÊM VÀO ===
     @Autowired
     private UserService userService;
-    // === KẾT THÚC PHẦN THÊM VÀO ===
 
     /**
-     * Xử lý POST request để thêm sản phẩm vào giỏ
+     * API Endpoint để thêm sách vào giỏ
+     * URL: POST /cart/add/{bookId}
      */
-    @PostMapping("/cart/add")
-    public String addToCart(@RequestParam("bookId") Long bookId,
-                            @RequestParam("quantity") int quantity) {
+    @PostMapping("/add/{bookId}")
+    @ResponseBody
+    public ResponseEntity<?> addToCart(
+            @PathVariable("bookId") Long bookId,
+            Authentication authentication,
+            HttpSession session
+    ) {
+        int totalItems = 0;
 
-        cartService.addToCart(bookId, quantity);
+        try { // ✅ BỌC TOÀN BỘ LOGIC TRONG TRY...CATCH
 
-        // Chuyển hướng đến trang xem giỏ hàng sau khi thêm
-        return "redirect:/cart";
+            if (authentication != null && authentication.isAuthenticated()) {
+                // === KỊCH BẢN 1: USER ĐÃ ĐĂNG NHẬP ===
+                String email = authentication.getName();
+                User user = userService.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+                cartService.addBookToCart(user, bookId, 1);
+                totalItems = cartService.getCartItemCount(user);
+
+            } else {
+                // === KỊCH BẢN 2: KHÁCH VÃNG LAI ===
+                cartService.addBookToSessionCart(session, bookId, 1);
+                totalItems = cartService.getSessionCartItemCount(session);
+            }
+
+            // Trả về JSON thành công
+            return ResponseEntity.ok(Map.of("success", true, "totalItems", totalItems));
+
+        } catch (Exception e) {
+            // ✅ NẾU CÓ BẤT KỲ LỖI GÌ (VD: NullPointerException), NÓ SẼ BỊ BẮT Ở ĐÂY
+            e.printStackTrace(); // In lỗi Java ra Console IntelliJ
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     /**
-     * Xử lý GET request để hiển thị trang giỏ hàng
+     * Hiển thị trang "Xem Giỏ Hàng"
+     * URL: GET /cart
      */
-    @GetMapping("/cart")
-    public String showCart(Model model) {
-        model.addAttribute("cartItems", cartService.getItems());
-        model.addAttribute("totalPrice", cartService.getTotalPrice());
+    @GetMapping
+    public String showCartPage(Model model, Authentication authentication, HttpSession session) {
 
-        return "user/cart"; // Trả về file user/cart.html
-    }
+        List<CartItem> cartItems;
+        double totalAmount;
 
-    /**
-     * Xử lý POST request để cập nhật số lượng
-     */
-    @PostMapping("/cart/update")
-    public String updateCart(@RequestParam("bookId") Long bookId,
-                             @RequestParam("quantity") int quantity) {
-
-        // Gọi service để cập nhật số lượng
-        cartService.updateItem(bookId, quantity);
-
-        return "redirect:/cart";
-    }
-
-    /**
-     * Xử lý POST request để xóa sản phẩm
-     */
-    @PostMapping("/cart/remove")
-    public String removeFromCart(@RequestParam("bookId") Long bookId) {
-
-        // Gọi service để xóa
-        cartService.removeItem(bookId);
-
-        return "redirect:/cart";
-    }
-
-    /**
-     * Xử lý GET request để hiển thị trang Thanh toán
-     */
-    @GetMapping("/checkout")
-    public String showCheckoutPage(Model model, Principal principal) {
-
-        // Lấy thông tin người dùng đang đăng nhập
-        if (principal != null) {
-            String email = principal.getName();
-            // Bây giờ dòng này sẽ hoạt động vì userService đã được tiêm vào
-            User currentUser = userService.findByEmail(email)
-                    .orElse(null);
-            model.addAttribute("currentUser", currentUser);
+        if (authentication != null && authentication.isAuthenticated()) {
+            // === USER ĐÃ ĐĂNG NHẬP ===
+            User user = userService.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+            cartItems = cartService.getItems(user).stream().toList();
+            totalAmount = cartService.getTotalPrice(user);
+        } else {
+            // === KHÁCH VÃNG LAI ===
+            cartItems = cartService.getSessionCartItems(session);
+            totalAmount = cartService.getSessionTotalPrice(session);
         }
 
-        // Gửi thông tin giỏ hàng sang trang checkout
-        model.addAttribute("cartItems", cartService.getItems());
-        model.addAttribute("totalPrice", cartService.getTotalPrice());
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("totalAmount", totalAmount);
 
-        return "user/checkout"; // Trả về file user/checkout.html
+        return "user/cart";
     }
 }

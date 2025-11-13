@@ -9,34 +9,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional; // Cần import này cho List.of() và Optional
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
-    // --- TẬP TRUNG AUTOWIRED LÊN ĐẦU ---
-    @Autowired
-    private BookService bookService;
+    // (Tất cả @Autowired của bạn giữ nguyên)
+    @Autowired private BookService bookService;
+    @Autowired private CategoryService categoryService;
+    @Autowired private UserService userService;
+    @Autowired private OrderService orderService;
+    @Autowired private StatisticsService statisticsService;
 
-    @Autowired
-    private CategoryService categoryService;
+    // ... (các hàm dashboard, book, category, user) ...
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private StatisticsService statisticsService;
-    // --- KẾT THÚC AUTOWIRED ---
-
-
-    // === DASHBOARD ===
     @GetMapping("/dashboard")
     public String showDashboard(Model model) {
         model.addAttribute("totalRevenue", statisticsService.getTotalRevenue());
@@ -45,27 +37,40 @@ public class AdminController {
         return "admin/dashboard";
     }
 
-
-    // --- QUẢN LÝ SÁCH ---
     @GetMapping("/books")
     public String listBooks(Model model) {
-        List<Book> bookList = bookService.getAllBooks();
-        model.addAttribute("books", bookList);
-        return "admin/book-list";
+        model.addAttribute("books", bookService.getAllBooks());
+        return "admin/book/list";
     }
 
     @GetMapping("/books/add")
     public String showAddBookForm(Model model) {
         model.addAttribute("book", new Book());
-        List<Category> categories = categoryService.getAllCategories();
-        model.addAttribute("categories", categories);
-        return "admin/add-book";
+        model.addAttribute("categories", categoryService.getAllCategories());
+        return "admin/book/form";
     }
 
     @PostMapping("/books/add")
-    public String addBook(@ModelAttribute("book") Book book) {
+    public String addBook(
+            @ModelAttribute("book") Book book,
+            @RequestParam("coverImageFile") MultipartFile coverImageFile,
+            RedirectAttributes redirectAttributes
+    ) {
+
+        if (coverImageFile != null && !coverImageFile.isEmpty()) {
+            try {
+                String imageUrl = bookService.uploadCoverImage(coverImageFile);
+                book.setCoverImageUrl(imageUrl);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                redirectAttributes.addFlashAttribute("errorMessage", "Upload ảnh thất bại! Lỗi: " + e.getMessage());
+                return "redirect:/admin/books/add";
+            }
+        }
+
         book.setCreatedAt(LocalDateTime.now());
         bookService.saveBook(book);
+        redirectAttributes.addFlashAttribute("successMessage", "Thêm sách thành công!");
         return "redirect:/admin/books";
     }
 
@@ -81,11 +86,16 @@ public class AdminController {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("book", book);
-        return "admin/edit-book";
+        return "admin/book/form";
     }
 
     @PostMapping("/books/edit/{id}")
-    public String updateBook(@PathVariable("id") Long id, @ModelAttribute("book") Book bookDetails) {
+    public String updateBook(
+            @PathVariable("id") Long id,
+            @ModelAttribute("book") Book bookDetails,
+            @RequestParam("coverImageFile") MultipartFile coverImageFile,
+            RedirectAttributes redirectAttributes
+    ) {
         Book existingBook = bookService.getBookById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
 
@@ -94,9 +104,21 @@ public class AdminController {
         existingBook.setPrice(bookDetails.getPrice());
         existingBook.setStockQuantity(bookDetails.getStockQuantity());
         existingBook.setDescription(bookDetails.getDescription());
-        existingBook.setCoverImageUrl(bookDetails.getCoverImageUrl());
         existingBook.setCategory(bookDetails.getCategory());
+
+        if (coverImageFile != null && !coverImageFile.isEmpty()) {
+            try {
+                String imageUrl = bookService.uploadCoverImage(coverImageFile);
+                existingBook.setCoverImageUrl(imageUrl);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                redirectAttributes.addFlashAttribute("errorMessage", "Upload ảnh thất bại! Lỗi: " + e.getMessage());
+                return "redirect:/admin/books/edit/" + id;
+            }
+        }
+
         bookService.saveBook(existingBook);
+        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật sách thành công!");
         return "redirect:/admin/books";
     }
 
@@ -104,13 +126,13 @@ public class AdminController {
     @GetMapping("/categories")
     public String listCategories(Model model) {
         model.addAttribute("categories", categoryService.getAllCategories());
-        return "admin/category-list";
+        return "admin/category/list";
     }
 
     @GetMapping("/categories/add")
     public String showAddCategoryForm(Model model) {
         model.addAttribute("category", new Category());
-        return "admin/add-category";
+        return "admin/category/form";
     }
 
     @PostMapping("/categories/add")
@@ -124,7 +146,7 @@ public class AdminController {
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category Id:" + id));
         model.addAttribute("category", category);
-        return "admin/edit-category";
+        return "admin/category/form";
     }
 
     @PostMapping("/categories/edit/{id}")
@@ -147,7 +169,7 @@ public class AdminController {
     public String listUsers(Model model) {
         List<User> userList = userService.getAllUsers();
         model.addAttribute("users", userList);
-        return "admin/user-list";
+        return "admin/user/list";
     }
 
     @PostMapping("/users/delete/{id}")
@@ -162,14 +184,12 @@ public class AdminController {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
 
         model.addAttribute("user", user);
-        return "admin/edit-user";
+        return "admin/user/edit";
     }
 
     @PostMapping("/users/edit/{id}")
     public String updateUserRole(@PathVariable("id") Long id, @RequestParam("role") String role) {
-
         userService.updateUserRole(id, role);
-
         return "redirect:/admin/users";
     }
 
@@ -178,46 +198,31 @@ public class AdminController {
     public String listOrders(Model model) {
         List<Order> orderList = orderService.getAllOrders();
         model.addAttribute("orders", orderList);
-        return "admin/order-list";
+        return "admin/order/list";
     }
 
+    // ✅ === HÀM VIEWORDERDETAIL ĐÃ SỬA LỖI CÚ PHÁP ===
     @GetMapping("/orders/{id}")
     public String viewOrderDetail(@PathVariable("id") Long id, Model model) {
         Order order = orderService.getOrderById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid order Id:" + id));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid order Id:" + id)); // ✅ Đã xóa đường dẫn file lỗi
         model.addAttribute("order", order);
-        return "admin/order-detail";
+        return "admin/order/detail";
     }
+    // ✅ === KẾT THÚC HÀM SỬA ===
 
-    // === BẮT ĐẦU CODE MỚI CHO SỬA TRẠNG THÁI ĐƠN HÀNG ===
-
-    /**
-     * 1. Hiển thị form để sửa trạng thái đơn hàng
-     * URL: GET /admin/orders/edit/{id}
-     */
     @GetMapping("/orders/edit/{id}")
     public String showEditOrderForm(@PathVariable("id") Long id, Model model) {
         Order order = orderService.getOrderById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid order Id:" + id));
-
-        // Gửi danh sách các trạng thái có thể chọn
-        // Lưu ý: List.of yêu cầu Java 9+ (Bạn đang dùng Java 21 nên OK)
         model.addAttribute("statuses", List.of("Chờ xử lý", "Đang giao", "Đã giao", "Đã hủy"));
         model.addAttribute("order", order);
-        return "admin/edit-order";
+        return "admin/order/edit";
     }
 
-    /**
-     * 2. Xử lý việc cập nhật trạng thái
-     * URL: POST /admin/orders/edit/{id}
-     */
     @PostMapping("/orders/edit/{id}")
     public String updateOrderStatus(@PathVariable("id") Long id, @RequestParam("status") String status) {
-
         orderService.updateOrderStatus(id, status);
-
         return "redirect:/admin/orders";
     }
-
-    // === KẾT THÚC CODE MỚI ===
 }

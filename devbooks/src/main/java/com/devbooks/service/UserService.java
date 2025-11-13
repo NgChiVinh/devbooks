@@ -2,13 +2,13 @@ package com.devbooks.service;
 
 import com.devbooks.entity.User;
 import com.devbooks.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,13 +17,15 @@ import java.util.Optional;
 @Service
 public class UserService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-    // (Hàm registerUser của bạn - giữ nguyên)
+    @Transactional
     public User registerUser(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
@@ -33,16 +35,15 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    // (Các hàm cũ - giữ nguyên)
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
 
-    // (Hàm cũ - giữ nguyên)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
@@ -57,30 +58,19 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    // (Hàm cũ - giữ nguyên)
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    // === BẮT ĐẦU PHẦN CODE MỚI ===
-
-    /**
-     * Lấy thông tin 1 user bằng ID (dùng cho form Sửa)
-     */
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
 
-    /**
-     * Cập nhật vai trò (role) cho user (xử lý Sửa)
-     */
+    @Transactional
     public void updateUserRole(Long id, String role) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        user.setRole(role); // Cập nhật vai trò mới
-        userRepository.save(user); // Lưu lại
+        user.setRole(role);
+        userRepository.save(user);
     }
-
-    // === KẾT THÚC PHẦN CODE MỚI ===
 }

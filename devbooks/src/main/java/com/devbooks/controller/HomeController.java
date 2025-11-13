@@ -25,22 +25,46 @@ public class HomeController {
     /**
      * Xử lý trang chủ
      * URL: GET /
-     * === ĐÃ CẬP NHẬT ĐỂ LẤY SÁCH MỚI NHẤT ===
+     * === ĐÃ CẬP NHẬT ĐỂ LẤY ĐỦ SÁCH MỚI VÀ BÁN CHẠY ===
      */
     @GetMapping("/")
     public String home(Model model) {
         // 1. Lấy 5 cuốn sách mới nhất
-        List<Book> bookList = bookService.getNewestBooks();
+        List<Book> newestBooks = bookService.getNewestBooks();
 
-        // 2. Lấy tất cả danh mục
+        // 2. Lấy 5 cuốn sách bán chạy nhất
+        List<Book> topSellingBooks = bookService.getTopSellingBooks();
+
+        // 3. Lấy tất cả danh mục (cho Sidebar nếu cần)
         List<Category> categoryList = categoryService.getAllCategories();
 
-        // 3. Gửi ra view
-        model.addAttribute("books", bookList); // Gửi sách mới nhất
+        // 4. Gửi ra view
+        model.addAttribute("newestBooks", newestBooks); // Sách mới nhất
+        model.addAttribute("topSellingBooks", topSellingBooks); // Sách bán chạy
         model.addAttribute("categories", categoryList);
 
-        return "index"; // Trả về file index.html
+        // ✅ Sửa đường dẫn trả về
+        return "index"; // Trả về file templates/user/index.html
     }
+
+    // ✅ === HÀM MỚI CHO TRANG SẢN PHẨM ===
+    /**
+     * Xử lý trang "Sản phẩm" (Products)
+     * URL: GET /products
+     */
+    @GetMapping("/products")
+    public String showProductPage(Model model) {
+
+        // 1. Lấy tất cả danh mục (để hiển thị sidebar)
+        model.addAttribute("categories", categoryService.getAllCategories());
+
+        // 2. Lấy tất cả sách
+        model.addAttribute("books", bookService.getAllBooks());
+
+        // 3. Trả về file HTML
+        return "user/products"; // Trả về file templates/user/products.html
+    }
+    // ✅ === KẾT THÚC HÀM MỚI ===
 
     /**
      * Xử lý trang chi tiết sách (chức năng 9)
@@ -53,11 +77,11 @@ public class HomeController {
 
         model.addAttribute("book", book);
 
-        return "user/book-detail";
+        return "user/book-detail"; // Đường dẫn này đã đúng
     }
 
     /**
-     * Xử lý trang lọc sách theo danh mục (chức năng 6)
+     * Xử lý lọc sách theo danh mục (chức năng 6)
      * URL: GET /category/{id}
      */
     @GetMapping("/category/{id}")
@@ -68,7 +92,10 @@ public class HomeController {
         model.addAttribute("books", bookList);
         model.addAttribute("categories", categoryList);
 
-        return "index";
+        // Bạn có thể chọn trả về trang 'products' đã được lọc
+        // Hoặc trả về 'index' (nhưng 'index' không có code để lọc)
+        // ✅ Trả về trang products để hiển thị layout lọc
+        return "user/products";
     }
 
     /**
@@ -85,6 +112,7 @@ public class HomeController {
         model.addAttribute("categories", categoryList);
         model.addAttribute("searchKeyword", keyword);
 
-        return "index";
+        // ✅ Trả về trang products để hiển thị kết quả tìm kiếm
+        return "user/products";
     }
 }

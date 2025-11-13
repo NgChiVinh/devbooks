@@ -1,51 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+
 <head>
     <meta charset="UTF-8">
-    <title th:text="${book.title}"></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${book.title} + ' - DevBooks'">Chi tiết Sách</title>
 
-    <style>
-        .book-detail { display: flex; gap: 20px; }
-        .book-cover img { max-width: 300px; height: auto; }
-        .book-info { flex-grow: 1; }
-    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- CSS dùng chung + chi tiết sản phẩm -->
+    <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
+    <link rel="stylesheet" th:href="@{/css/product-detail.css(v=${#dates.createNow().getTime()})}">
 </head>
+
 <body>
+<!-- HEADER -->
+<div th:insert="~{fragments/header-snippet :: navbar}"></div>
 
-<h1>Chi tiết sách</h1>
-<hr>
+<!-- MAIN -->
+<main class="main-body-content">
+    <div class="container product-detail-container">
 
-<div class="book-detail" th:object="${book}">
+        <div class="product-detail-layout">
 
-    <div class="book-cover">
-        <img th:src="*{coverImageUrl}" th:alt="*{title}" />
+            <!-- Cột trái: Hình ảnh -->
+            <div class="product-image-gallery">
+                <img th:src="${book.coverImageUrl ?: '/images/default.png'}"
+                     th:alt="${book.title}"
+                     class="main-product-image" />
+            </div>
+
+            <!-- Cột phải: Thông tin -->
+            <div class="product-info-main">
+                <h1 class="product-title-detail" th:text="${book.title}">Tên Sách Lớn</h1>
+
+                <p class="product-author-detail">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    Tác giả: <span th:text="${book.author}">Tên Tác giả</span>
+                </p>
+
+                <p class="product-price-detail"
+                   th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">
+                    Giá Tiền
+                </p>
+
+                <!-- Nút thêm giỏ hàng -->
+                <div class="product-actions">
+                    <form th:action="@{/cart/add/{id}(id=${book.id})}"
+                          method="post"
+                          class="add-to-cart-form">
+                        <button type="submit" class="btn-add-cart-bottom">
+                            <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="product-description">
+                    <h2><i class="fa-regular fa-file-lines"></i> Mô tả sách</h2>
+                    <p th:text="${book.description}">
+                        Nội dung mô tả chi tiết của cuốn sách sẽ xuất hiện ở đây...
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
+</main>
 
-    <div class="book-info">
-        <h2 th:text="*{title}">Tên Sách</h2>
-        <p><strong>Tác giả:</strong> <span th:text="*{author}">Tên Tác Giả</span></p>
-        <p><strong>Danh mục:</strong> <span th:text="*{category.name}">Tên Danh mục</span></p>
-        <p><strong>Giá:</strong> <span th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">100,000 VNĐ</span></p>
-        <p><strong>Số lượng còn lại:</strong> <span th:text="*{stockQuantity}">50</span></p>
-        <hr>
-        <h3>Mô tả:</h3>
-        <p th:text="*{description}">Mô tả chi tiết về cuốn sách...</p>
-        <hr>
+<!-- FOOTER -->
+<div th:insert="~{fragments/footer-snippet :: footer}"></div>
 
-        <form th:action="@{/cart/add}" method="post">
-            <input type="hidden" name="bookId" th:value="*{id}" />
-
-            <label for="quantity">Số lượng:</label>
-            <input type="number" name="quantity" id="quantity" value="1" min="1" th:max="*{stockQuantity}" style="width: 60px;" />
-
-            <button type="submit">Thêm vào giỏ hàng</button>
-        </form>
-
-    </div>
-</div>
-
-<br>
-<a href="/">Quay lại trang chủ</a>
-
+<script th:src="@{/js/cart.js}"></script>
+<script th:src="@{/js/dropdown.js}"></script>
 </body>
 </html>

@@ -1,0 +1,136 @@
+/* ===================================== */
+/* TRANG CHI TIẾT SẢN PHẨM */
+/* ===================================== */
+
+.main-body-content {
+    padding: 80px 0 60px;
+    background-color: #fafafa;
+}
+
+/* Container canh giữa */
+.product-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Layout 2 cột */
+.product-detail-layout {
+    display: flex;
+    gap: 60px;
+    align-items: flex-start;
+}
+
+/* CỘT TRÁI: ẢNH */
+.product-image-gallery {
+    flex: 0 0 40%;
+    position: sticky;
+    top: 100px;
+}
+
+.main-product-image {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid #eee;
+    object-fit: contain;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.main-product-image:hover {
+    transform: scale(1.02);
+}
+
+/* CỘT PHẢI: THÔNG TIN */
+.product-info-main {
+    flex: 1;
+}
+
+.product-title-detail {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 12px;
+}
+
+.product-author-detail {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.product-author-detail i {
+    margin-right: 6px;
+    color: #007bff;
+}
+
+.product-author-detail span {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.product-price-detail {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #e34c38;
+    margin-bottom: 36px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+/* Nút thêm giỏ */
+.product-actions .btn-add-cart-bottom {
+    background-color: #222;
+    color: #fff;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.product-actions .btn-add-cart-bottom:hover {
+    background-color: #007bff;
+    transform: translateY(-2px);
+}
+
+/* Mô tả */
+.product-description {
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 24px;
+}
+
+.product-description h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.product-description p {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .product-detail-layout {
+        flex-direction: column;
+        gap: 30px;
+    }
+    .product-image-gallery {
+        position: static;
+    }
+    .product-title-detail {
+        font-size: 2rem;
+    }
+}

@@ -2,16 +2,24 @@ package com.devbooks.service;
 
 import com.devbooks.entity.Book;
 import com.devbooks.repository.BookRepository;
-import com.devbooks.repository.OrderDetailRepository; // <-- THÊM IMPORT NÀY
+import com.devbooks.repository.OrderDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+// ✅ === IMPORT MỚI CHO CLOUDINARY ===
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.util.Map;
+// ✅ === KẾT THÚC IMPORT MỚI ===
+
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors; // <-- THÊM IMPORT NÀY
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
@@ -19,10 +27,13 @@ public class BookService {
     @Autowired
     private BookRepository bookRepository;
 
-    // --- THÊM DEPENDENCY MỚI ---
     @Autowired
     private OrderDetailRepository orderDetailRepository;
-    // --- KẾT THÚC PHẦN THÊM MỚI ---
+
+    // ✅ === TIÊM (INJECT) CLOUDINARY BEAN ===
+    @Autowired
+    private Cloudinary cloudinary;
+    // ✅ === KẾT THÚC TIÊM BEAN ===
 
     // Lấy tất cả sách
     public List<Book> getAllBooks() {
@@ -62,8 +73,6 @@ public class BookService {
         return bookRepository.findAll(pageable).getContent();
     }
 
-    // === BẮT ĐẦU PHẦN CODE MỚI ===
-
     /**
      * Lấy 5 cuốn sách bán chạy nhất (chức năng 7)
      */
@@ -80,5 +89,30 @@ public class BookService {
                 .collect(Collectors.toList()); // Thu thập lại thành List<Book>
     }
 
-    // === KẾT THÚC PHẦN CODE MỚI ===
+    // ✅ === BẮT ĐẦU HÀM UPLOAD ẢNH MỚI ===
+
+    /**
+     * Hàm này nhận một file (MultipartFile) từ AdminController,
+     * upload nó lên Cloudinary, và trả về URL (String) của ảnh đã upload.
+     */
+    public String uploadCoverImage(MultipartFile file) {
+        try {
+            // Upload file lên Cloudinary
+            // "devbooks_uploads" là tên thư mục bạn muốn tạo trên Cloudinary
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap("folder", "devbooks_uploads"));
+
+            // Lấy URL an toàn (https) của ảnh đã upload
+            String secureUrl = (String) uploadResult.get("secure_url");
+
+            return secureUrl;
+
+        } catch (IOException e) {
+            // Xử lý lỗi (ví dụ: file rỗng, lỗi kết nối)
+            e.printStackTrace();
+            // Bạn có thể ném ra một exception tùy chỉnh ở đây nếu muốn
+            throw new RuntimeException("Không thể upload ảnh: " + e.getMessage());
+        }
+    }
+    // ✅ === KẾT THÚC HÀM UPLOAD ẢNH MỚI ===
 }

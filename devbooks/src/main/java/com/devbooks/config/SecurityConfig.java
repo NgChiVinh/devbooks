@@ -4,64 +4,79 @@ import com.devbooks.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import com.devbooks.config.CustomLoginSuccessHandler; // Đảm bảo import này đúng
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // Tiêm (Inject) Handler gộp giỏ hàng
+    @Autowired
+    private CustomLoginSuccessHandler loginSuccessHandler;
+
     @Autowired
     private UserService userService;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    // Tiêm (Inject) Encoder (được tạo từ CloudinaryConfig)
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    // Bean này "dạy" Spring Security cách tìm và xác thực người dùng
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService); // Dùng UserService của bạn
-        authProvider.setPasswordEncoder(passwordEncoder()); // Dùng PasswordEncoder của bạn
+        authProvider.setUserDetailsService(userService);
+        authProvider.setPasswordEncoder(passwordEncoder); // Dùng encoder đã tiêm
         return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorize -> authorize
-                        // 1. Phân quyền
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // Chỉ ADMIN được vào /admin
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        // 1. Tĩnh
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
 
-                        // THÊM "/login" VÀO ĐÂY
-                        .requestMatchers("/", "/home", "/register", "/book/**", "/login").permitAll()
+                        // 2. CÔNG KHAI
+                        .requestMatchers(
+                                "/", "/home", "/register", "/book/**", "/login",
+                                "/products", "/category/**", "/search"
+                        ).permitAll()
 
-                        .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll() // Tài nguyên tĩnh
-                        .anyRequest().authenticated() // Tất cả các trang khác phải đăng nhập
+                        // 3. ✅ SỬA LỖI GIỎ HÀNG
+                        // Cho phép tất cả các đường dẫn con (như /cart/add/...)
+                        .requestMatchers("/cart/**").permitAll()
+
+                        // 4. Admin
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // 5. Khác (như /checkout)
+                        .anyRequest().authenticated()
                 )
-                // 2. Cấu hình Form Login
-                .formLogin(formLogin -> formLogin
-                        .loginPage("/login") // Đường dẫn đến trang login của bạn
-                        .loginProcessingUrl("/login") // URL mà form sẽ POST đến để Spring Security xử lý
-                        .defaultSuccessUrl("/", true) // Đăng nhập thành công thì về trang chủ
-                        .permitAll() // Cho phép tất cả mọi người truy cập trang /login
-                )
-                // 3. Cấu hình Logout
-                .logout(logout -> logout
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout")) // URL để kích hoạt logout
-                        .logoutSuccessUrl("/") // Logout thành công thì về trang chủ
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .successHandler(loginSuccessHandler) // Dùng Handler gộp giỏ
                         .permitAll()
-                );
-
-        // 4. Áp dụng provider xác thực của bạn
-        http.authenticationProvider(authenticationProvider());
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .permitAll()
+                )
+                .authenticationProvider(authenticationProvider());
 
         return http.build();
     }

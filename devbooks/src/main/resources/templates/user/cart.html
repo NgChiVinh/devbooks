@@ -1,80 +1,97 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+
 <head>
     <meta charset="UTF-8">
-    <title>Giỏ hàng của bạn</title>
-    <style>
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .total-row { font-weight: bold; font-size: 1.2em; }
-        .quantity-input { width: 60px; }
-        .action-button { padding: 5px 10px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ Hàng - DevBooks</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
+    <link rel="stylesheet" th:href="@{/css/cart.css(v=${#dates.createNow().getTime()})}">
 </head>
+
 <body>
 
-<h1>Giỏ hàng của bạn</h1>
+<div th:insert="~{fragments/header-snippet :: navbar}"></div>
 
-<div th:if="${cartItems.isEmpty()}">
-    <p>Giỏ hàng của bạn đang trống.</p>
-    <a href="/">Tiếp tục mua sắm</a>
-</div>
+<main class="cart-page-container">
+    <div class="container">
 
-<div th:if="${!cartItems.isEmpty()}">
-    <table border="1">
-        <thead>
-        <tr>
-            <th>Sản phẩm</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-            <th>Tổng phụ</th>
-            <th>Hành động</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="item : ${cartItems}">
-            <td th:text="${item.book.title}">Tên sách</td>
-            <td th:text="${#numbers.formatDecimal(item.book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">100,000 VNĐ</td>
+        <h1 class="page-title">Giỏ Hàng Của Bạn</h1>
 
-            <td>
-                <form th:action="@{/cart/update}" method="post">
-                    <input type="hidden" name="bookId" th:value="${item.book.id}" />
-                    <input type="number" name="quantity" th:value="${item.quantity}" min="1" class="quantity-input" />
-                    <button type="submit" class="action-button">Cập nhật</button>
-                </form>
-            </td>
+        <div class="cart-empty" th:if="${cartItems == null OR cartItems.isEmpty()}">
+            <p>Giỏ hàng của bạn đang trống.</p>
+            <a th:href="@{/products}" class="btn-shopping">Tiếp tục mua sắm</a>
+        </div>
 
-            <td th:text="${#numbers.formatDecimal(item.getSubtotal(), 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">200,000 VNĐ</td>
+        <div class="cart-layout" th:if="${!cartItems.isEmpty()}">
 
-            <td>
-                <form th:action="@{/cart/remove}" method="post">
-                    <input type="hidden" name="bookId" th:value="${item.book.id}" />
-                    <button type="submit" class="action-button">Xóa</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+            <div class="cart-items-list">
+                <table class="cart-table">
+                    <thead>
+                    <tr>
+                        <th colspan="2">Sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Số lượng</th>
+                        <th>Tạm tính</th>
+                        <th>Xóa</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${cartItems}">
+                        <td class="cell-image">
+                            <img th:src="${item.book.coverImageUrl ?: '/images/default.png'}" th:alt="${item.book.title}" />
+                        </td>
+                        <td class="cell-title">
+                            <a th:href="@{/book/{id}(id=${item.book.id})}" th:text="${item.book.title}"></a>
+                        </td>
+                        <td th:text="${#numbers.formatDecimal(item.book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+                        <td class="cell-quantity">
+                            <input type="number" th:value="${item.quantity}" min="1" disabled />
+                        </td>
+                        <td class_name="cell-subtotal" th:text="${#numbers.formatDecimal(item.book.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+                        <td>
+                            <a href="#" class="cart-remove-btn"><i class="fas fa-times"></i></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
 
-    <hr>
+            <aside class="cart-summary">
+                <h3>Tổng Cộng Giỏ Hàng</h3>
 
-    <div>
-        <h3 class="total-row">
-            Tổng cộng:
-            <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
-        </h3>
+                <div class="summary-row">
+                    <span>Tạm tính</span>
+                    <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+                </div>
+                <div class="summary-row">
+                    <span>Phí vận chuyển</span>
+                    <span>Miễn phí</span>
+                </div>
+
+                <hr class="summary-divider">
+
+                <div class="summary-total">
+                    <span>Tổng Tiền</span>
+                    <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+                </div>
+
+                <a th:href="@{/checkout}" class="btn-checkout">Tiến hành Thanh toán</a>
+            </aside>
+
+        </div>
     </div>
+</main>
 
-    <div>
-        <a href="/checkout">
-            <button style="padding: 15px; font-size: 1.1em; background-color: green; color: white;">
-                Tiến hành Thanh toán
-            </button>
-        </a>
-        <a href="/" style="margin-left: 20px;">Tiếp tục mua sắm</a>
-    </div>
-</div>
-
+<div th:insert="~{fragments/footer-snippet :: footer}"></div>
+<script th:src="@{/js/dropdown.js}"></script>
 </body>
 </html>
