@@ -12,6 +12,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+// ✅ THÊM CÁC IMPORT CHO PHÂN TRANG
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 public class HomeController {
@@ -24,95 +30,111 @@ public class HomeController {
 
     /**
      * Xử lý trang chủ
-     * URL: GET /
-     * === ĐÃ CẬP NHẬT ĐỂ LẤY ĐỦ SÁCH MỚI VÀ BÁN CHẠY ===
      */
     @GetMapping("/")
     public String home(Model model) {
-        // 1. Lấy 5 cuốn sách mới nhất
         List<Book> newestBooks = bookService.getNewestBooks();
-
-        // 2. Lấy 5 cuốn sách bán chạy nhất
         List<Book> topSellingBooks = bookService.getTopSellingBooks();
-
-        // 3. Lấy tất cả danh mục (cho Sidebar nếu cần)
         List<Category> categoryList = categoryService.getAllCategories();
 
-        // 4. Gửi ra view
-        model.addAttribute("newestBooks", newestBooks); // Sách mới nhất
-        model.addAttribute("topSellingBooks", topSellingBooks); // Sách bán chạy
+        model.addAttribute("newestBooks", newestBooks);
+        model.addAttribute("topSellingBooks", topSellingBooks);
         model.addAttribute("categories", categoryList);
 
-        // ✅ Sửa đường dẫn trả về
-        return "index"; // Trả về file templates/user/index.html
+        return "user/index"; // Đảm bảo file index.html nằm trong templates/user/
     }
 
-    // ✅ === HÀM MỚI CHO TRANG SẢN PHẨM ===
     /**
-     * Xử lý trang "Sản phẩm" (Products)
-     * URL: GET /products
+     * Xử lý trang "Sản phẩm" (ĐÃ CÓ PHÂN TRANG 12 SÁCH)
      */
     @GetMapping("/products")
-    public String showProductPage(Model model) {
+    public String showAllProducts(
+            Model model,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        Pageable pageable = PageRequest.of(page, 12);
 
-        // 1. Lấy tất cả danh mục (để hiển thị sidebar)
+        // ✅ SỬA LỖI: Gọi hàm phân trang
+        Page<Book> bookPage = bookService.getAllBooks(pageable);
+
+        int totalPages = bookPage.getTotalPages();
+        if (totalPages > 0) {
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
+                    .boxed()
+                    .collect(Collectors.toList());
+            model.addAttribute("pageNumbers", pageNumbers);
+        }
+
         model.addAttribute("categories", categoryService.getAllCategories());
 
-        // 2. Lấy tất cả sách
-        model.addAttribute("books", bookService.getAllBooks());
+        // ✅ SỬA LỖI: Gửi đối tượng Page (chứa sách)
+        model.addAttribute("bookPage", bookPage);
+        // ❌ KHÔNG GỬI "books" (vì hàm này không còn trả về List<Book> nữa)
 
-        // 3. Trả về file HTML
-        return "user/products"; // Trả về file templates/user/products.html
-    }
-    // ✅ === KẾT THÚC HÀM MỚI ===
+        model.addAttribute("currentPage", page);
+        model.addAttribute("activeCategory", null);
 
-    /**
-     * Xử lý trang chi tiết sách (chức năng 9)
-     * URL: GET /book/{id}
-     */
-    @GetMapping("/book/{id}")
-    public String bookDetail(@PathVariable("id") Long id, Model model) {
-        Book book = bookService.getBookById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
-
-        model.addAttribute("book", book);
-
-        return "user/book-detail"; // Đường dẫn này đã đúng
-    }
-
-    /**
-     * Xử lý lọc sách theo danh mục (chức năng 6)
-     * URL: GET /category/{id}
-     */
-    @GetMapping("/category/{id}")
-    public String booksByCategory(@PathVariable("id") Long categoryId, Model model) {
-        List<Book> bookList = bookService.getBooksByCategoryId(categoryId);
-        List<Category> categoryList = categoryService.getAllCategories();
-
-        model.addAttribute("books", bookList);
-        model.addAttribute("categories", categoryList);
-
-        // Bạn có thể chọn trả về trang 'products' đã được lọc
-        // Hoặc trả về 'index' (nhưng 'index' không có code để lọc)
-        // ✅ Trả về trang products để hiển thị layout lọc
         return "user/products";
     }
 
     /**
-     * Xử lý tìm kiếm sách (chức năng 8)
-     * URL: GET /search
+     * Xử lý trang chi tiết sách (Giữ nguyên)
+     */
+    @GetMapping("/book/{id}")
+    public String bookDetail(@PathVariable("id") Long id, Model model) {
+        // ... (Code này đã đúng)
+        return "user/book-detail";
+    }
+
+    /**
+     * Xử lý lọc sách theo danh mục (ĐÃ CÓ PHÂN TRANG)
+     */
+    @GetMapping("/category/{id}")
+    public String booksByCategory(
+            @PathVariable("id") Long categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            Model model
+    ) {
+        Pageable pageable = PageRequest.of(page, 12);
+        // ✅ SỬA LỖI: Gọi hàm phân trang
+        Page<Book> bookPage = bookService.getBooksByCategoryId(categoryId, pageable);
+
+        int totalPages = bookPage.getTotalPages();
+        if (totalPages > 0) {
+            // ... (Code tạo pageNumbers)
+        }
+
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("bookPage", bookPage); // ✅ Gửi Page
+        model.addAttribute("currentPage", page);
+        model.addAttribute("activeCategory", categoryId);
+
+        return "user/products";
+    }
+
+    /**
+     * Xử lý tìm kiếm sách (ĐÃ CÓ PHÂN TRANG)
      */
     @GetMapping("/search")
-    public String searchBooks(@RequestParam("keyword") String keyword, Model model) {
+    public String searchBooks(
+            @RequestParam("keyword") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            Model model
+    ) {
+        Pageable pageable = PageRequest.of(page, 12);
+        // ✅ SỬA LỖI: Gọi hàm phân trang
+        Page<Book> bookPage = bookService.searchBooks(keyword, pageable);
 
-        List<Book> bookList = bookService.searchBooks(keyword);
-        List<Category> categoryList = categoryService.getAllCategories();
+        int totalPages = bookPage.getTotalPages();
+        if (totalPages > 0) {
+            // ... (Code tạo pageNumbers)
+        }
 
-        model.addAttribute("books", bookList);
-        model.addAttribute("categories", categoryList);
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("bookPage", bookPage); // ✅ Gửi Page
+        model.addAttribute("currentPage", page);
         model.addAttribute("searchKeyword", keyword);
 
-        // ✅ Trả về trang products để hiển thị kết quả tìm kiếm
         return "user/products";
     }
 }

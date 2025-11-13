@@ -10,7 +10,6 @@
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
           crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
@@ -40,7 +39,7 @@
                     <li th:each="category : ${categories}">
                         <a th:href="@{/category/{id}(id=${category.id})}"
                            th:text="${category.name}"
-                           th:classappend="${activeCategory?.id == category.id} ? 'active' : ''">
+                           th:classappend="${activeCategory != null && activeCategory == category.id} ? 'active' : ''">
                             Tên Danh mục
                         </a>
                     </li>
@@ -49,13 +48,14 @@
             </aside>
 
             <section class="book-area">
-                <div th:if="${books == null OR books.isEmpty()}">
+
+                <div th:if="${bookPage == null OR bookPage.empty}">
                     <p>Không tìm thấy cuốn sách nào phù hợp.</p>
                 </div>
 
-                <div class="book-list-container" th:if="${!books.isEmpty()}">
+                <div class="book-list-container" th:if="${!bookPage.empty}">
 
-                    <div th:each="book : ${books}" class="modern-card">
+                    <div th:each="book : ${bookPage.content}" class="modern-card">
 
                         <div class="book-img-container">
                             <a th:href="@{/book/{id}(id=${book.id})}">
@@ -75,17 +75,32 @@
                             <form th:action="@{/cart/add/{id}(id=${book.id})}"
                                   method="post"
                                   class="add-to-cart-form">
-
                                 <button type="submit" class="btn-add-cart-bottom">
                                     Thêm vào giỏ
                                 </button>
                             </form>
                         </div>
                     </div>
-                </div>
-            </section>
+                </div> <nav aria-label="Page navigation" class="pagination-container" th:if="${bookPage.totalPages > 1}">
+                <ul class="pagination">
 
-        </div>
+                    <li class="page-item" th:classappend="${bookPage.first} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{${searchKeyword != null ? '/search?keyword=' + searchKeyword + '&' : (activeCategory != null ? '/category/' + activeCategory + '?' : '/products?') + 'page=' + (currentPage - 1)}}">«</a>
+                    </li>
+
+                    <li class="page-item" th:each="pageNumber : ${pageNumbers}"
+                        th:classappend="${pageNumber - 1 == currentPage} ? 'active' : ''">
+                        <a class="page-link" th:href="@{${searchKeyword != null ? '/search?keyword=' + searchKeyword + '&' : (activeCategory != null ? '/category/' + activeCategory + '?' : '/products?') + 'page=' + (pageNumber - 1)}}"
+                           th:text="${pageNumber}"></a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${bookPage.last} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{${searchKeyword != null ? '/search?keyword=' + searchKeyword + '&' : (activeCategory != null ? '/category/' + activeCategory + '?' : '/products?') + 'page=' + (currentPage + 1)}}">»</a>
+                    </li>
+                </ul>
+            </nav>
+
+            </section> </div>
     </div>
 </main>
 

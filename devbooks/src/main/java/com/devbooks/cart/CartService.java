@@ -12,13 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-// ✅ THÊM 2 IMPORT NÀY
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class CartService {
@@ -35,7 +34,7 @@ public class CartService {
     @Autowired
     private UserService userService;
 
-    // === CÁC HÀM XỬ LÝ GIỎ HÀNG VĨNH VIỄN (DATABASE) ===
+    // === HÀM GIỎ HÀNG DATABASE (USER ĐÃ ĐĂNG NHẬP) ===
 
     public Cart getCartByUser(User user) {
         return cartRepository.findByUser(user)
@@ -72,9 +71,7 @@ public class CartService {
 
     public int getCartItemCount(User user) {
         Cart cart = getCartByUser(user);
-        if (cart == null || cart.getItems() == null) {
-            return 0;
-        }
+        if (cart == null || cart.getItems() == null) { return 0; }
         return cart.getItems().stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
@@ -82,9 +79,7 @@ public class CartService {
 
     public double getTotalPrice(User user) {
         Cart cart = getCartByUser(user);
-        if (cart == null || cart.getItems() == null) {
-            return 0.0;
-        }
+        if (cart == null || cart.getItems() == null) { return 0.0; }
         return cart.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getBook().getPrice())
                 .sum();
@@ -97,19 +92,14 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    // Hàm này được OrderService cần đến
     public Set<CartItem> getItems(User user) {
         return getCartByUser(user).getItems();
     }
 
-    // === CÁC HÀM MỚI CHO GIỎ HÀNG KHÁCH (SESSION) ===
+    // === HÀM GIỎ HÀNG SESSION (KHÁCH VÃNG LAI) ===
 
-    /**
-     * Lấy giỏ hàng từ Session, nếu chưa có thì tạo mới
-     */
     public Map<Long, Integer> getSessionCart(HttpSession session) {
         Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
-
         if (cart == null) {
             cart = new HashMap<>();
             session.setAttribute("cart", cart);
@@ -117,37 +107,23 @@ public class CartService {
         return cart;
     }
 
-    /**
-     * Thêm sách vào giỏ hàng Session (cho khách)
-     */
     public void addBookToSessionCart(HttpSession session, Long bookId, int quantity) {
         Map<Long, Integer> cart = getSessionCart(session);
         cart.put(bookId, cart.getOrDefault(bookId, 0) + quantity);
         session.setAttribute("cart", cart);
     }
 
-    /**
-     * Đếm số lượng trong giỏ hàng Session
-     */
     public int getSessionCartItemCount(HttpSession session) {
         Map<Long, Integer> cart = getSessionCart(session);
         return cart.values().stream().mapToInt(Integer::intValue).sum();
     }
 
-    /**
-     * ✅ HÀM MỚI (BỊ THIẾU): Lấy danh sách các CartItem đầy đủ từ Session
-     */
     public List<CartItem> getSessionCartItems(HttpSession session) {
         Map<Long, Integer> sessionCart = getSessionCart(session);
         List<CartItem> cartItems = new ArrayList<>();
-
-        if (sessionCart.isEmpty()) {
-            return cartItems;
-        }
-
+        if (sessionCart.isEmpty()) { return cartItems; }
         List<Long> bookIds = new ArrayList<>(sessionCart.keySet());
         List<Book> books = bookRepository.findAllById(bookIds);
-
         for (Book book : books) {
             int quantity = sessionCart.get(book.getId());
             CartItem item = new CartItem();
@@ -158,17 +134,62 @@ public class CartService {
         return cartItems;
     }
 
-    /**
-     * ✅ HÀM MỚI (BỊ THIẾU): Tính tổng tiền cho giỏ hàng Session
-     */
     public double getSessionTotalPrice(HttpSession session) {
         List<CartItem> cartItems = getSessionCartItems(session);
-        if (cartItems.isEmpty()) {
-            return 0.0;
-        }
-
+        if (cartItems.isEmpty()) { return 0.0; }
         return cartItems.stream()
                 .mapToDouble(item -> item.getQuantity() * item.getBook().getPrice())
                 .sum();
+    }
+
+    // ✅ === BẮT ĐẦU 4 HÀM MỚI BỊ THIẾU ===
+
+    // 1. CẬP NHẬT SỐ LƯỢNG (CHO USER DB)
+    @Transactional
+    public double updateItemQuantity(User user, Long bookId, int quantity) {
+        Cart cart = getCartByUser(user);
+        CartItem item = cart.getItems().stream()
+                .filter(i -> i.getBook().getId().equals(bookId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy item"));
+
+        if (quantity < 1) { quantity = 1; } // Giữ tối thiểu 1
+        item.setQuantity(quantity);
+        cartItemRepository.save(item);
+
+        return item.getBook().getPrice() * quantity; // Trả về tổng tiền của item này
+    }
+
+    // 2. XÓA ITEM (CHO USER DB)
+    @Transactional
+    public void removeItem(User user, Long bookId) {
+        Cart cart = getCartByUser(user);
+        CartItem item = cart.getItems().stream()
+                .filter(i -> i.getBook().getId().equals(bookId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy item"));
+
+        cart.getItems().remove(item); // Xóa khỏi quan hệ
+        cartItemRepository.delete(item); // Xóa khỏi DB
+    }
+
+    // 3. CẬP NHẬT SỐ LƯỢNG (CHO KHÁCH SESSION)
+    public double updateSessionItemQuantity(HttpSession session, Long bookId, int quantity) {
+        Map<Long, Integer> cart = getSessionCart(session);
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sách"));
+
+        if (quantity < 1) { quantity = 1; }
+        cart.put(bookId, quantity); // Ghi đè số lượng
+        session.setAttribute("cart", cart);
+
+        return book.getPrice() * quantity; // Trả về tổng tiền của item này
+    }
+
+    // 4. XÓA ITEM (CHO KHÁCH SESSION)
+    public void removeSessionItem(HttpSession session, Long bookId) {
+        Map<Long, Integer> cart = getSessionCart(session);
+        cart.remove(bookId); // Xóa khỏi Map
+        session.setAttribute("cart", cart);
     }
 }

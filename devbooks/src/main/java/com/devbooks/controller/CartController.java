@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.util.Map;
 import java.util.List;
+import java.util.HashMap; // ✅ Thêm Import
 
 @Controller
 @RequestMapping("/cart")
@@ -26,7 +27,7 @@ public class CartController {
     private UserService userService;
 
     /**
-     * API Endpoint để thêm sách vào giỏ
+     * API Thêm vào giỏ
      * URL: POST /cart/add/{bookId}
      */
     @PostMapping("/add/{bookId}")
@@ -38,28 +39,22 @@ public class CartController {
     ) {
         int totalItems = 0;
 
-        try { // ✅ BỌC TOÀN BỘ LOGIC TRONG TRY...CATCH
-
+        try {
             if (authentication != null && authentication.isAuthenticated()) {
-                // === KỊCH BẢN 1: USER ĐÃ ĐĂNG NHẬP ===
-                String email = authentication.getName();
-                User user = userService.findByEmail(email)
+                // USER ĐÃ ĐĂNG NHẬP
+                User user = userService.findByEmail(authentication.getName())
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
                 cartService.addBookToCart(user, bookId, 1);
                 totalItems = cartService.getCartItemCount(user);
-
             } else {
-                // === KỊCH BẢN 2: KHÁCH VÃNG LAI ===
+                // KHÁCH VÃNG LAI
                 cartService.addBookToSessionCart(session, bookId, 1);
                 totalItems = cartService.getSessionCartItemCount(session);
             }
-
-            // Trả về JSON thành công
             return ResponseEntity.ok(Map.of("success", true, "totalItems", totalItems));
 
         } catch (Exception e) {
-            // ✅ NẾU CÓ BẤT KỲ LỖI GÌ (VD: NullPointerException), NÓ SẼ BỊ BẮT Ở ĐÂY
-            e.printStackTrace(); // In lỗi Java ra Console IntelliJ
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
@@ -75,13 +70,13 @@ public class CartController {
         double totalAmount;
 
         if (authentication != null && authentication.isAuthenticated()) {
-            // === USER ĐÃ ĐĂNG NHẬP ===
+            // USER ĐÃ ĐĂNG NHẬP
             User user = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
             cartItems = cartService.getItems(user).stream().toList();
             totalAmount = cartService.getTotalPrice(user);
         } else {
-            // === KHÁCH VÃNG LAI ===
+            // KHÁCH VÃNG LAI
             cartItems = cartService.getSessionCartItems(session);
             totalAmount = cartService.getSessionTotalPrice(session);
         }
@@ -90,5 +85,82 @@ public class CartController {
         model.addAttribute("totalAmount", totalAmount);
 
         return "user/cart";
+    }
+
+    // ✅ === HÀM MỚI: CẬP NHẬT SỐ LƯỢNG ===
+    @PostMapping("/update")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateCartQuantity(
+            @RequestParam("bookId") Long bookId,
+            @RequestParam("quantity") int quantity,
+            Authentication authentication,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        double newSubtotal;
+        int newTotalItems;
+        double itemTotalPrice;
+
+        try {
+            if (authentication != null && authentication.isAuthenticated()) {
+                // USER ĐÃ ĐĂNG NHẬP
+                User user = userService.findByEmail(authentication.getName()).orElseThrow();
+                itemTotalPrice = cartService.updateItemQuantity(user, bookId, quantity);
+                newSubtotal = cartService.getTotalPrice(user);
+                newTotalItems = cartService.getCartItemCount(user);
+            } else {
+                // KHÁCH VÃNG LAI
+                itemTotalPrice = cartService.updateSessionItemQuantity(session, bookId, quantity);
+                newSubtotal = cartService.getSessionTotalPrice(session);
+                newTotalItems = cartService.getSessionCartItemCount(session);
+            }
+
+            response.put("success", true);
+            response.put("itemTotalPrice", itemTotalPrice);
+            response.put("subtotal", newSubtotal);
+            response.put("totalItems", newTotalItems);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    // ✅ === HÀM MỚI: XÓA SẢN PHẨM ===
+    @PostMapping("/remove/{bookId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> removeCartItem(
+            @PathVariable("bookId") Long bookId,
+            Authentication authentication,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        double newSubtotal;
+        int newTotalItems;
+
+        try {
+            if (authentication != null && authentication.isAuthenticated()) {
+                // USER ĐÃ ĐĂNG NHẬP
+                User user = userService.findByEmail(authentication.getName()).orElseThrow();
+                cartService.removeItem(user, bookId);
+                newSubtotal = cartService.getTotalPrice(user);
+                newTotalItems = cartService.getCartItemCount(user);
+            } else {
+                // KHÁCH VÃNG LAI
+                cartService.removeSessionItem(session, bookId);
+                newSubtotal = cartService.getSessionTotalPrice(session);
+                newTotalItems = cartService.getSessionCartItemCount(session);
+            }
+
+            response.put("success", true);
+            response.put("subtotal", newSubtotal);
+            response.put("totalItems", newTotalItems);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 }

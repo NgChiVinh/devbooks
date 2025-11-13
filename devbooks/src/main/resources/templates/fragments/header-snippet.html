@@ -5,18 +5,46 @@
     <nav class="navbar">
         <div class="navbar-container">
 
+            <!-- LOGO -->
             <a th:href="@{/}" class="brand">
                 <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo" class="logo-img"/>
             </a>
 
+            <!-- MENU CHÍNH -->
             <ul class="navbar-menu">
-                <li><a th:href="@{/}" class="active">Trang Chủ</a></li>
-                <li><a th:href="@{/products}">Sản phẩm</a></li>
-                <li><a th:href="@{/about}">Giới thiệu</a></li>
-                <li><a th:href="@{/contact}">Liên hệ</a></li>
-                <li sec:authorize="hasRole('ROLE_ADMIN')"><a th:href="@{/admin/dashboard}">Admin</a></li>
+                <li>
+                    <a th:href="@{/}"
+                       th:classappend="${#httpServletRequest.requestURI == '/'} ? 'active' : ''">
+                        Trang Chủ
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/products}"
+                       th:classappend="${#httpServletRequest.requestURI.startsWith('/products')} ? 'active' : ''">
+                        Sản phẩm
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/about}"
+                       th:classappend="${#httpServletRequest.requestURI.startsWith('/about')} ? 'active' : ''">
+                        Giới thiệu
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/contact}"
+                       th:classappend="${#httpServletRequest.requestURI.startsWith('/contact')} ? 'active' : ''">
+                        Liên hệ
+                    </a>
+                </li>
+                <li sec:authorize="hasRole('ROLE_ADMIN')">
+                    <a th:href="@{/admin/dashboard}"
+                       th:classappend="${#httpServletRequest.requestURI.startsWith('/admin')} ? 'active' : ''">
+                        Admin
+                    </a>
+                </li>
             </ul>
 
+            <!-- ICONS BÊN PHẢI -->
             <div class="navbar-icons">
 
                 <a th:href="@{#}"><i class="fas fa-search"></i></a>
@@ -28,6 +56,7 @@
 
                 <div class="navbar-user-menu">
 
+                    <!-- CHƯA ĐĂNG NHẬP -->
                     <span sec:authorize="!isAuthenticated()">
                         <a href="#" id="user-menu-button" class="navbar-icon-link">
                             <i class="fas fa-user"></i>
@@ -38,6 +67,7 @@
                         </div>
                     </span>
 
+                    <!-- ĐÃ ĐĂNG NHẬP -->
                     <span sec:authorize="isAuthenticated()">
                         <a href="#" id="user-menu-button" class="navbar-icon-link">
                             <i class="fas fa-user-check"></i>
