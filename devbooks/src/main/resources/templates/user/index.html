@@ -11,6 +11,8 @@
 
     <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
 
+
+
     <style>
         body { background-color: #f4f7f9; margin: 0; padding: 0; font-family: Arial, sans-serif; color: #333; }
     </style>
@@ -36,34 +38,10 @@
 
 <section class="features-bar">
     <div class="container">
-        <div class="feature-item">
-            <i class="fas fa-plane"></i>
-            <div class="feature-text">
-                <h4>Free Shipping</h4>
-                <p>Miễn phí vận chuyển cho đơn hàng trên 200.000đ</p>
-            </div>
-        </div>
-        <div class="feature-item">
-            <i class="fas fa-headset"></i>
-            <div class="feature-text">
-                <h4>Support 24/7</h4>
-                <p>Liên hệ hỗ trợ 24 giờ một ngày, 7 ngày một tuần</p>
-            </div>
-        </div>
-        <div class="feature-item">
-            <i class="fas fa-undo-alt"></i>
-            <div class="feature-text">
-                <h4>30 Days Return</h4>
-                <p>Đổi trả dễ dàng trong vòng 30 ngày</p>
-            </div>
-        </div>
-        <div class="feature-item">
-            <i class="fas fa-shield-alt"></i>
-            <div class="feature-text">
-                <h4>100% Payment Secure</h4>
-                <p>Đảm bảo thanh toán an toàn và bảo mật</p>
-            </div>
-        </div>
+        <div class="feature-item"><i class="fas fa-plane"></i><div class="feature-text"><h4>Free Shipping</h4><p>Miễn phí vận chuyển cho đơn hàng trên 200.000đ</p></div></div>
+        <div class="feature-item"><i class="fas fa-headset"></i><div class="feature-text"><h4>Support 24/7</h4><p>Liên hệ hỗ trợ 24 giờ một ngày, 7 ngày một tuần</p></div></div>
+        <div class="feature-item"><i class="fas fa-undo-alt"></i><div class="feature-text"><h4>30 Days Return</h4><p>Đổi trả dễ dàng trong vòng 30 ngày</p></div></div>
+        <div class="feature-item"><i class="fas fa-shield-alt"></i><div class="feature-text"><h4>100% Payment Secure</h4><p>Đảm bảo thanh toán an toàn và bảo mật</p></div></div>
     </div>
 </section>
 
@@ -79,7 +57,6 @@
                 </div>
 
                 <div class="book-list-container" th:if="${!newestBooks.isEmpty()}">
-
                     <div th:each="book, iterStat : ${newestBooks}" th:if="${iterStat.index < 4}" class="book-card">
                         <span class="card-badge new">New</span>
                         <a th:href="@{/book/{id}(id=${book.id})}">
@@ -90,6 +67,16 @@
                         </a>
                         <p class="book-author" th:text="${book.author}">Tên Tác Giả</p>
                         <p class="price" th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">Giá</p>
+
+                        <div class="book-card-footer">
+                            <form th:if="${book.stockQuantity > 0}" th:action="@{/cart/add/{id}(id=${book.id})}" method="post" class="add-to-cart-form">
+                                <button type="submit" class="btn-add-cart-bottom">Thêm vào giỏ</button>
+                            </form>
+                            <div th:if="${book.stockQuantity <= 0}">
+                                <button type="button" class="btn-out-of-stock" disabled>Đã hết hàng</button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 <div th:if="${newestBooks == null OR newestBooks.isEmpty()}">
@@ -103,8 +90,10 @@
                 <h2>Sách Bán Chạy Nhất</h2>
 
                 <div class="book-list-container" th:if="${!topSellingBooks.isEmpty()}">
-
                     <div th:each="book, iterStat : ${topSellingBooks}" th:if="${iterStat.index < 4}" class="book-card">
+
+                        <span class="card-badge hot">Hot</span>
+
                         <a th:href="@{/book/{id}(id=${book.id})}">
                             <img th:src="${book.coverImageUrl ?: '/images/default.png'}" th:alt="${book.title}" class="book-cover-img" />
                         </a>
@@ -113,6 +102,16 @@
                         </a>
                         <p class="book-author" th:text="${book.author}">Tên Tác Giả</p>
                         <p class="price" th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">Giá</p>
+
+                        <div class="book-card-footer">
+                            <form th:if="${book.stockQuantity > 0}" th:action="@{/cart/add/{id}(id=${book.id})}" method="post" class="add-to-cart-form">
+                                <button type="submit" class="btn-add-cart-bottom">Thêm vào giỏ</button>
+                            </form>
+                            <div th:if="${book.stockQuantity <= 0}">
+                                <button type="button" class="btn-out-of-stock" disabled>Đã hết hàng</button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 <div th:if="${topSellingBooks == null OR topSellingBooks.isEmpty()}">
@@ -121,7 +120,7 @@
             </div>
 
         </div> </div> </main> <div th:insert="~{fragments/footer-snippet :: footer}"></div>
-        <script th:src="@{/js/cart.js}"></script>
-        <script th:src="@{/js/dropdown.js}"></script>
+<script th:src="@{/js/cart.js}"></script>
+<script th:src="@{/js/dropdown.js}"></script>
 </body>
 </html>

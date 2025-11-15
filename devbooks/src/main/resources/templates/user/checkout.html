@@ -13,58 +13,133 @@
           crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
-    <link rel="stylesheet" th:href="@{/css/cart.css(v=${#dates.createNow().getTime()})}">
+    <link rel="stylesheet" th:href="@{/css/checkout.css(v=${#dates.createNow().getTime()})}">
 </head>
 
 <body>
 
 <div th:insert="~{fragments/header-snippet :: navbar}"></div>
 
-<main class="cart-page-container">
+<main class="checkout-main">
     <div class="container">
 
-        <h1 class="page-title">Thanh Toán Đơn Hàng</h1>
+        <h1 class="page-title">Thanh Toán</h1>
 
-        <div class.html="cart-empty" th:if="${cartItems == null OR cartItems.isEmpty()}">
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" style="margin-bottom: 20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+        <div class="cart-empty" th:if="${cartItems == null OR cartItems.isEmpty()}">
             <p>Không có gì để thanh toán. Vui lòng thêm sản phẩm vào giỏ.</p>
             <a th:href="@{/products}" class="btn-shopping">Quay lại Cửa hàng</a>
         </div>
 
-        <div class="cart-layout" th:if="${!cartItems.isEmpty()}">
+        <div class="checkout-layout" th:if="${!cartItems.isEmpty()}">
 
-            <div class="cart-items-list">
-                <div class="checkout-form-box">
-                    <h3>Thông tin giao hàng</h3>
-                    <form th:action="@{/order/submit}" method="post">
+            <section class="checkout-form-section">
+                <form th:action="@{/order/submit}" method="post" id="checkout-form">
+
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin liên hệ</h2>
                         <div class="form-group">
-                            <label for="shippingAddress">Địa chỉ nhận hàng:</label>
-                            <input type="text" id="shippingAddress" name="shippingAddress" class="form-control" required>
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-control"
+                                   th:value="${#authentication.name}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2 class="section-title">Thông tin giao hàng</h2>
+
+                        <div class="form-group">
+                            <label for="fullName">Họ và Tên</label>
+                            <input type="text" id="fullName" name="fullName" class="form-control"
+                                   th:value="${user.fullName}" required>
                         </div>
                         <div class="form-group">
-                            <label for="phoneNumber">Số điện thoại:</label>
-                            <input type="text" id="phoneNumber" name="phoneNumber" class.html="form-control" required>
+                            <label for="shippingAddress">Địa chỉ nhận hàng</label>
+                            <input type="text" id="shippingAddress" name="shippingAddress" class="form-control"
+                                   placeholder="Số nhà, tên đường, phường/xã..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="city">Tỉnh / Thành phố</label>
+                            <select id="city" name="city" class="form-control" required>
+                                <option value="" disabled selected>-- Chọn Tỉnh/Thành --</option>
+                                <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                                <option value="Hà Nội">Hà Nội</option>
+                                <option value="Đà Nẵng">Đà Nẵng</option>
+                                <option value="Cần Thơ">Cần Thơ</option>
+                                <option value="Hải Phòng">Hải Phòng</option>
+                            </select>
                         </div>
 
-                        <button type="submit" class="btn-checkout">Xác nhận Đặt Hàng</button>
-                    </form>
-                </div>
-            </div>
+                        <div class="form-group">
+                            <label for="phoneNumber">Số điện thoại</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" required>
+                        </div>
 
-            <aside class="cart-summary">
-                <h3>Đơn Hàng Của Bạn</h3>
+                        <div class="form-group">
+                            <label for="notes">Ghi chú (Tùy chọn)</label>
+                            <textarea id="notes" name="notes" class="form-control" rows="3"
+                                      placeholder="Ghi chú thêm về đơn hàng hoặc thời gian giao..."></textarea>
+                        </div>
+                    </div>
 
-                <div class="summary-items">
-                    <div th:each="item : ${cartItems}" class="summary-item-row">
-                        <span th:text="${item.book.title} + ' x ' + ${item.quantity}">Sách A x 1</span>
-                        <span th:text="${#numbers.formatDecimal(item.book.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                    <div class="form-section">
+                        <h2 class="section-title">Phương thức thanh toán</h2>
+                        <div class="payment-method-options">
+                            <div class="payment-option">
+                                <input type="radio" id="payment-cod" name="paymentMethod" value="COD" checked>
+                                <label for="payment-cod">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Thanh toán khi nhận hàng (COD)</span>
+                                </label>
+                                <p class="payment-description">
+                                    Bạn sẽ thanh toán bằng tiền mặt cho nhân viên giao hàng.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a th:href="@{/cart}" class="back-link">
+                            <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
+                        </a>
+                        <button type="submit" class="btn-submit-order">Hoàn Tất Đặt Hàng</button>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="checkout-summary">
+                <h3>Tóm Tắt Đơn Hàng</h3>
+                <div class="summary-items-list">
+                    <div th:each="item : ${cartItems}" class="summary-item">
+                        <div class="summary-item-image">
+                            <img th:src="${item.book.coverImageUrl ?: '/images/default.png'}" />
+                            <span class="item-quantity-badge" th:text="${item.quantity}">1</span>
+                        </div>
+                        <div class="summary-item-info">
+                            <span class="item-title" th:text="${item.book.title}">Tên Sách</span>
+                        </div>
+                        <span class="item-price"
+                              th:text="${#numbers.formatDecimal(item.book.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">
+                            0 VNĐ
+                        </span>
                     </div>
                 </div>
-
                 <hr class="summary-divider">
-
+                <div class="summary-row">
+                    <span>Tạm tính</span>
+                    <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+                </div>
+                <div class="summary-row">
+                    <span>Phí vận chuyển</span>
+                    <strong>Miễn phí</strong>
+                </div>
+                <hr class="summary-divider">
                 <div class="summary-total">
                     <span>Tổng Tiền</span>
-                    <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+                    <span class="total-price" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
                 </div>
             </aside>
 
@@ -74,5 +149,6 @@
 
 <div th:insert="~{fragments/footer-snippet :: footer}"></div>
 
+<script th:src="@{/js/dropdown.js}"></script>
 </body>
 </html>

@@ -1,12 +1,51 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Đặt hàng thành công</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt hàng thành công - DevBooks</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
+    <style>
+        body { background-color: #f4f7f9; }
+        .success-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background-color: #fff;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #28a745;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 </head>
 <body>
-<h1>Đặt hàng thành công!</h1>
-<p>Cảm ơn bạn đã mua sắm tại DevBooks. Chúng tôi sẽ xử lý đơn hàng của bạn sớm nhất.</p>
-<a href="/">Quay lại trang chủ</a>
+
+<header style="text-align: center; padding: 20px; background: #fff; border-bottom: 1px solid #eee;">
+    <a th:href="@{/}">
+        <img th:src="@{/images/devbooks-logo.jpg}" alt="DevBooks Logo" style="height: 45px;"/>
+    </a>
+</header>
+
+<div class="success-container">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <h1>Đặt Hàng Thành Công!</h1>
+    <p>Cảm ơn bạn đã mua hàng tại DevBooks. Đơn hàng của bạn đang được xử lý.</p>
+    <br>
+    <a th:href="@{/products}" class="btn" style="background-color: #007bff; color: white;">Tiếp tục mua sắm</a>
+</div>
+
 </body>
 </html>

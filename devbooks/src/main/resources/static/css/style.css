@@ -70,10 +70,6 @@ h1 { color: #007bff; }
 .navbar-menu a:hover,
 .navbar-menu a.active {
    color: #01d277;
-    border-bottom: 2px solid #01d277;
-    padding-bottom: 4px;
-    font-weight: 600;
-    transition: all 0.3s ease;
 }
 
 /* --- ICONS --- */
@@ -105,7 +101,37 @@ h1 { color: #007bff; }
   border-radius: 50%;
   padding: 2px 5px;
 }
+/* ===================================== */
+/* ✅ 1A. FORM TÌM KIẾM TRÊN NAVBAR (MỚI) */
+/* ===================================== */
+.navbar-search-form {
+    display: flex;
+    align-items: center;
+}
+.search-input {
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px; /* Bo góc trái */
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    outline: none; /* Bỏ viền xanh khi focus */
+    transition: border-color 0.3s;
+}
+.search-input:focus {
+    border-color: #007bff; /* Đổi màu viền khi gõ */
+}
 
+.search-btn {
+    background-color: #2c3e50; /* Dùng màu xanh than (hợp tông) */
+    color: white;
+    border: 1px solid #2c3e50;
+    padding: 8px 12px;
+    border-radius: 0 5px 5px 0; /* Bo góc phải */
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.search-btn:hover {
+    background-color: #1a252f;
+}
 /* --- RESPONSIVE --- */
 .menu-toggle {
   display: none;
@@ -482,6 +508,16 @@ h1 { color: #007bff; }
     background-color: #007bff;
 }
 
+/* ... (Code .card-badge.new của bạn) ... */
+.card-badge.new {
+    background-color: #007bff;
+}
+
+/* ✅ THÊM CSS CHO NHÃN "HOT" */
+.card-badge.hot {
+    background-color: #ff6a00; /* Màu cam/đỏ cho "Hot" */
+}
+
 .book-cover-img {
     width: 100%;
     height: 280px;
@@ -720,4 +756,190 @@ h1 { color: #007bff; }
     border: none;
     border-top: 1px solid #eee;
     margin: 5px 0;
+}
+/* ===================================== */
+/* 4. CARD SÁCH (TRANG CHỦ & SẢN PHẨM) */
+/* ===================================== */
+
+/* (Phần code .book-list-container, .book-card... của bạn đã có) */
+
+
+/* ✅ BẮT ĐẦU CSS MỚI CHO NÚT BẤM */
+
+.book-card-footer {
+  margin-top: 12px;
+  text-align: center;
+  /* Đảm bảo nút bấm được đẩy xuống dưới (nếu dùng flex) */
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+/* Nút "Thêm vào giỏ" (Dùng màu xanh ngọc của banner) */
+.btn-add-cart-bottom {
+  background: #01d277; /* Dùng màu xanh ngọc của Banner/Logo */
+  color: #fff; /* Chữ trắng */
+  border: 2px solid #01d277;
+  border-radius: 6px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 600;
+  width: 100%;
+  box-sizing: border-box;
+  text-decoration: none;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.btn-add-cart-bottom:hover {
+  background: #00a860; /* Màu xanh đậm hơn */
+  border-color: #00a860;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(1, 210, 119, 0.3);
+}
+
+/* Nút "Hết hàng" (Màu xám) */
+.btn-out-of-stock {
+    background: #f4f7f9; /* Nền xám nhạt */
+    color: #999;
+    border: 2px solid #eee;
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 100%;
+    box-sizing: border-box;
+    text-transform: uppercase;
+    cursor: not-allowed;
+}
+/* ===================================== */
+/* 7. TOAST NOTIFICATION (THÔNG BÁO MỚI) */
+/* ===================================== */
+
+#toast-container {
+    position: fixed; /* Luôn cố định trên màn hình */
+    top: 80px; /* Dưới navbar 1 chút */
+    right: 20px;
+    z-index: 2000; /* Nằm trên mọi thứ */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-width: 250px;
+
+    /* Hiệu ứng (mặc định ẩn) */
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.4s ease;
+}
+
+/* Kiểu thông báo */
+.toast.toast-success {
+    background-color: #28a745; /* Xanh lá (Giống nút mua sắm) */
+}
+.toast.toast-error {
+    background-color: #dc3545; /* Đỏ (Giống nút xóa) */
+}
+.toast.toast-info {
+    background-color: #007bff; /* Xanh dương */
+}
+
+/* Hiệu ứng (Hiện ra) */
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+/* ===================================== */
+/* 8. MODAL XÁC NHẬN (CONFIRM BOX) */
+/* ===================================== */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Nền mờ */
+    z-index: 3000; /* Nằm trên cả Toast */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+/* Hiệu ứng khi hiện Modal */
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin: 0 0 10px 0;
+}
+.modal-content p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-modal {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Nút Hủy (Màu xám) */
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+.btn-cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Nút Đồng Ý (Màu đỏ) */
+.btn-confirm {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-confirm:hover {
+    background-color: #c82333;
 }

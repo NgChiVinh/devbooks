@@ -72,15 +72,24 @@
                         </div>
 
                         <div class="book-card-footer">
-                            <form th:action="@{/cart/add/{id}(id=${book.id})}"
+
+                            <form th:if="${book.stockQuantity > 0}"
+                                  th:action="@{/cart/add/{id}(id=${book.id})}"
                                   method="post"
                                   class="add-to-cart-form">
                                 <button type="submit" class="btn-add-cart-bottom">
                                     Thêm vào giỏ
                                 </button>
                             </form>
+
+                            <div th:if="${book.stockQuantity <= 0}">
+                                <button type="button" class="btn-out-of-stock" disabled>
+                                    Đã hết hàng
+                                </button>
+                            </div>
+
                         </div>
-                    </div>
+
                 </div> <nav aria-label="Page navigation" class="pagination-container" th:if="${bookPage.totalPages > 1}">
                 <ul class="pagination">
 

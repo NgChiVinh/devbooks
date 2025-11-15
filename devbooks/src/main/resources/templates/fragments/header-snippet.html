@@ -5,49 +5,34 @@
     <nav class="navbar">
         <div class="navbar-container">
 
-            <!-- LOGO -->
             <a th:href="@{/}" class="brand">
                 <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo" class="logo-img"/>
             </a>
 
-            <!-- MENU CHÍNH -->
             <ul class="navbar-menu">
                 <li>
-                    <a th:href="@{/}"
-                       th:classappend="${#httpServletRequest.requestURI == '/'} ? 'active' : ''">
-                        Trang Chủ
-                    </a>
+                    <a th:href="@{/}" th:classappend="${activePage == 'home'} ? 'active' : ''">Trang Chủ</a>
                 </li>
                 <li>
-                    <a th:href="@{/products}"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/products')} ? 'active' : ''">
-                        Sản phẩm
-                    </a>
+                    <a th:href="@{/products}" th:classappend="${activePage == 'products'} ? 'active' : ''">Sản phẩm</a>
                 </li>
                 <li>
-                    <a th:href="@{/about}"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/about')} ? 'active' : ''">
-                        Giới thiệu
-                    </a>
+                    <a th:href="@{/about}" th:classappend="${activePage == 'about'} ? 'active' : ''">Giới thiệu</a>
                 </li>
                 <li>
-                    <a th:href="@{/contact}"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/contact')} ? 'active' : ''">
-                        Liên hệ
-                    </a>
+                    <a th:href="@{/contact}" th:classappend="${activePage == 'contact'} ? 'active' : ''">Liên hệ</a>
                 </li>
                 <li sec:authorize="hasRole('ROLE_ADMIN')">
-                    <a th:href="@{/admin/dashboard}"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/admin')} ? 'active' : ''">
-                        Admin
-                    </a>
+                    <a th:href="@{/admin/dashboard}" th:classappend="${activePage == 'admin'} ? 'active' : ''">Admin</a>
                 </li>
             </ul>
-
-            <!-- ICONS BÊN PHẢI -->
             <div class="navbar-icons">
-
-                <a th:href="@{#}"><i class="fas fa-search"></i></a>
+                <form th:action="@{/search}" method="get" class="navbar-search-form">
+                    <input type="text" name="keyword" placeholder="Tìm kiếm sách..." class="search-input" th:value="${searchKeyword}">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
 
                 <a th:href="@{/cart}">
                     <i class="fas fa-shopping-bag"></i>
@@ -55,8 +40,6 @@
                 </a>
 
                 <div class="navbar-user-menu">
-
-                    <!-- CHƯA ĐĂNG NHẬP -->
                     <span sec:authorize="!isAuthenticated()">
                         <a href="#" id="user-menu-button" class="navbar-icon-link">
                             <i class="fas fa-user"></i>
@@ -66,8 +49,6 @@
                             <a th:href="@{/register}" class="dropdown-item">Đăng ký</a>
                         </div>
                     </span>
-
-                    <!-- ĐÃ ĐĂNG NHẬP -->
                     <span sec:authorize="isAuthenticated()">
                         <a href="#" id="user-menu-button" class="navbar-icon-link">
                             <i class="fas fa-user-check"></i>
@@ -79,9 +60,9 @@
                             <a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a>
                         </div>
                     </span>
-
                 </div>
             </div>
+
         </div>
     </nav>
 </div>

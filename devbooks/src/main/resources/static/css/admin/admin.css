@@ -1,0 +1,153 @@
+/* resources/static/css/admin/admin.css */
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  margin: 0;
+  background-color: #f1f2f3; /* xám nhạt */
+  color: #333;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #0F172A; /* Xanh navy rất tối giúp logo nổi bật */
+  height: 100vh;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Khung chứa brand */
+.sidebar .brand {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #1E293B;
+}
+
+/* Logo nổi bật */
+.sidebar .brand img {
+  width: 130px;
+  height: auto;
+}
+
+/* Link menu */
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  color: #E2E8F0; /* xám nhạt - dễ nhìn trên nền tối */
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  font-size: 15px;
+}
+
+.sidebar a i {
+  color: #F1F5F9; /* icon sáng */
+}
+
+/* Hover + Active */
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: #1E3A8A; /* xanh dương sáng */
+  color: #fff;
+}
+
+.sidebar a:hover i,
+.sidebar a.active i {
+  color: #fff;
+}
+
+
+/* Main Content */
+.main-content {
+  margin-left: 240px;
+  padding: 30px;
+  width: 100%;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header h2 {
+  font-weight: 700;
+  color: #2f3542;
+  margin-bottom: 25px;
+}
+
+/* 3 ô thống kê */
+.stats-row {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.stats-card {
+  flex: 1;
+  min-width: 250px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 25px 0;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card h5 {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.stats-card h3 {
+  color: #111827;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* Biểu đồ */
+.charts-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.chart-card {
+  flex: 1;
+  min-width: 350px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chart-card h5 {
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+canvas {
+  width: 100% !important;
+  height: 280px !important;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
+  color: #666;
+  margin-top: 30px;
+}

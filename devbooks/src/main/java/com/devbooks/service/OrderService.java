@@ -12,7 +12,7 @@ import com.devbooks.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.devbooks.entity.Cart; // ✅ Thêm import
+import com.devbooks.entity.Cart;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,47 +23,36 @@ public class OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
-
     @Autowired
     private OrderDetailRepository orderDetailRepository;
-
     @Autowired
     private BookRepository bookRepository;
-
-    // ✅ === BƯỚC 1: TIÊM (INJECT) CART SERVICE ===
     @Autowired
     private CartService cartService;
 
-    // (Phương thức cũ của bạn)
+    // (Hàm getAllOrders() và getOrderById() - Giữ nguyên)
     public List<Order> getAllOrders() {
         return orderRepository.findAllWithUser();
     }
-
-    // (Phương thức cũ của bạn)
     public Optional<Order> getOrderById(Long id) {
         return orderRepository.findByIdWithDetails(id);
     }
 
-    // ✅ === BƯỚC 2: SỬA HÀM CREATEORDER ===
+    // (Hàm createOrder() - Giữ nguyên, đã trừ kho)
     @Transactional
-    public Order createOrder(User user, String shippingAddress, String phoneNumber) {
-
-        // Lấy giỏ hàng từ service (chứ không phải truyền vào)
+    public Order createOrder(User user, String shippingAddress,String city , String phoneNumber, String paymentMethod) {
         Cart cart = cartService.getCartByUser(user);
-
-        // 1. Tạo đối tượng Order chính
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
-        order.setTotalAmount(cartService.getTotalPrice(user)); // Lấy tổng tiền từ user
+        order.setTotalAmount(cartService.getTotalPrice(user));
         order.setStatus("Chờ xử lý");
         order.setShippingAddress(shippingAddress);
-        // (Bạn có thể thêm trường sđt vào Entity Order nếu muốn và set nó ở đây)
-
+        order.setCity(city);
+        order.setPaymentMethod(paymentMethod);
         Order savedOrder = orderRepository.save(order);
 
-        // 2. Tạo các chi tiết đơn hàng (Order Details)
-        for (CartItem item : cart.getItems()) { // Lấy item từ 'cart'
+        for (CartItem item : cart.getItems()) {
             OrderDetail detail = new OrderDetail();
             detail.setOrder(savedOrder);
             detail.setBook(item.getBook());
@@ -71,7 +60,6 @@ public class OrderService {
             detail.setPricePerUnit(item.getBook().getPrice());
             orderDetailRepository.save(detail);
 
-            // 3. Cập nhật số lượng sách trong kho
             Book book = item.getBook();
             int newStock = book.getStockQuantity() - item.getQuantity();
             if (newStock < 0) {
@@ -80,23 +68,60 @@ public class OrderService {
             book.setStockQuantity(newStock);
             bookRepository.save(book);
         }
-
-        // 4. ✅ QUAN TRỌNG: Xóa giỏ hàng sau khi đã đặt hàng
         cartService.clearCart(cart);
-
         return savedOrder;
     }
 
-    /**
-     * Cập nhật trạng thái cho đơn hàng
-     * */
+    // (Hàm updateOrderStatus() - Giữ nguyên)
     @Transactional
     public void updateOrderStatus(Long id, String status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
-
         order.setStatus(status);
         orderRepository.save(order);
     }
 
+    /**
+     * HÀM (CHO BƯỚC 1): Lấy tất cả đơn hàng VÀ chi tiết
+     */
+    public List<Order> findOrdersByUser(User user) {
+        return orderRepository.findOrdersByUserWithDetails(user);
+    }
+
+    /**
+     * ✅ HÀM ĐÃ ĐƯỢC NÂNG CẤP (TỐI ƯU 3)
+     * Xử lý Hủy đơn hàng VÀ Hoàn trả tồn kho
+     */
+    @Transactional
+    public void cancelOrder(Long orderId, User user) {
+
+        // 1. Tìm đơn hàng (PHẢI dùng findByIdWithDetails để tải chi tiết sách)
+        Order order = orderRepository.findByIdWithDetails(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // 2. Kiểm tra bảo mật
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Bạn không có quyền hủy đơn hàng này");
+        }
+
+        // 3. Kiểm tra trạng thái
+        if (!"Chờ xử lý".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Đơn hàng đã được xử lý, không thể hủy");
+        }
+
+        // 4. ✅ HOÀN TRẢ TỒN KHO
+        for (OrderDetail detail : order.getOrderDetails()) {
+            Book book = detail.getBook();
+            if (book != null) {
+                // Cộng trả lại số lượng đã mua
+                book.setStockQuantity(book.getStockQuantity() + detail.getQuantity());
+                bookRepository.save(book);
+            }
+        }
+        // 4. ✅ KẾT THÚC HOÀN TRẢ TỒN KHO
+
+        // 5. Cập nhật trạng thái
+        order.setStatus("Đã hủy");
+        orderRepository.save(order);
+    }
 }

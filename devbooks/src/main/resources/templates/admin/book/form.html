@@ -1,77 +1,117 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-
     <title th:text="${book.id == null} ? 'Thêm Sách Mới' : 'Sửa thông tin Sách'">Form Sách</title>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/admin/admin.css}">
+
     <style>
-        body { font-family: sans-serif; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input, select, textarea { width: 300px; padding: 8px; }
-        button { padding: 10px 15px; }
-        .current-image { max-width: 200px; height: auto; margin-top: 10px; border: 1px solid #ccc; }
+        .current-image {
+            max-width: 200px;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
     </style>
 </head>
+
 <body>
-
-<h1 th:text="${book.id == null} ? 'Thêm Sách Mới' : 'Sửa thông tin Sách'">Form Sách</h1>
-
-<form th:action="${book.id == null} ? @{/admin/books/add} : @{/admin/books/edit/{id}(id=${book.id})}"
-      th:object="${book}"
-      method="post"
-      enctype="multipart/form-data">
-
-    <div class="form-group">
-        <label for="title">Tiêu đề:</label>
-        <input type="text" id="title" th:field="*{title}" required>
+<div class="sidebar">
+    <div>
+        <div class="brand">
+            <a th:href="@{/}">
+                <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo">
+            </a>
+        </div>
+        <a th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a th:href="@{/admin/books}" class="active"><i class="bi bi-book"></i> Sách</a> <a th:href="@{/admin/categories}"><i class="bi bi-folder"></i> Danh mục</a>
+        <a th:href="@{/admin/users}"><i class="bi bi-people"></i> Người dùng</a>
+        <a th:href="@{/admin/orders}"><i class="bi bi-receipt"></i> Đơn hàng</a>
     </div>
-
-    <div class="form-group">
-        <label for="author">Tác giả:</label>
-        <input type="text" id="author" th:field="*{author}" required>
+    <div>
+        <a th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
     </div>
+</div>
 
-    <div class="form-group">
-        <label for="price">Giá:</label>
-        <input type="number" id="price" th:field="*{price}" required step="0.01">
+<div class="main-content">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2 th:text="${book.id == null} ? 'Thêm Sách Mới' : 'Sửa thông tin Sách'">Form Sách</h2>
+        </div>
+
+        <div class="chart-card">
+
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <form th:action="${book.id == null} ? @{/admin/books/add} : @{/admin/books/edit/{id}(id=${book.id})}"
+                  th:object="${book}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Tiêu đề:</label>
+                            <input type="text" id="title" th:field="*{title}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="author" class="form-label">Tác giả:</label>
+                            <input type="text" id="author" th:field="*{author}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô tả:</label>
+                            <textarea id="description" th:field="*{description}" rows="8" class="form-control"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Giá (VNĐ):</label>
+                            <input type="number" id="price" th:field="*{price}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stockQuantity" class="form-label">Số lượng trong kho:</label>
+                            <input type="number" id="stockQuantity" th:field="*{stockQuantity}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Danh mục:</label>
+                            <select id="category" th:field="*{category.id}" class="form-select" required>
+                                <option value="">-- Chọn Danh mục --</option>
+                                <option th:each="cat : ${categories}"
+                                        th:value="${cat.id}"
+                                        th:text="${cat.name}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="coverImageFile" class="form-label">Ảnh bìa mới:</label>
+                            <input type="file" id="coverImageFile" name="coverImageFile" class="form-control" accept="image/*">
+                            <small th:if="${book.id != null}" class="form-text text-muted">Bỏ trống nếu không muốn thay đổi ảnh.</small>
+                        </div>
+
+                        <div class="mb-3" th:if="${book.id != null && book.coverImageUrl != null}">
+                            <label class="form-label">Ảnh bìa hiện tại:</label>
+                            <img th:src="${book.coverImageUrl}" alt="Ảnh bìa" class="current-image"/>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary" th:text="${book.id == null} ? 'Lưu Sách' : 'Cập nhật'">Lưu</button>
+                    <a th:href="@{/admin/books}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <div class="form-group">
-        <label for="stockQuantity">Số lượng trong kho:</label>
-        <input type="number" id="stockQuantity" th:field="*{stockQuantity}" required>
-    </div>
-
-    <div class="form-group">
-        <label for="category">Danh mục:</label>
-        <select id="category" th:field="*{category}" required>
-            <option value="">-- Chọn Danh mục --</option>
-            <option th:each="cat : ${categories}"
-                    th:value="${cat.id}"
-                    th:text="${cat.name}"></option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="coverImageFile">Ảnh bìa mới:</label>
-        <input type="file" id="coverImageFile" name="coverImageFile" accept="image/*">
-        <small th:if="${book.id != null}">Bỏ trống nếu không muốn thay đổi ảnh hiện tại.</small>
-    </div>
-
-    <div class="form-group" th:if="${book.id != null && book.coverImageUrl != null}">
-        <label>Ảnh bìa hiện tại:</label>
-        <img th:src="${book.coverImageUrl}" alt="Ảnh bìa" class="current-image"/>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Mô tả:</label>
-        <textarea id="description" th:field="*{description}" rows="5"></textarea>
-    </div>
-
-    <button type="submit" th:text="${book.id == null} ? 'Lưu Sách' : 'Cập nhật'">Lưu</button>
-    <a href="/admin/books">Hủy</a>
-</form>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

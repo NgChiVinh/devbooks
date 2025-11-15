@@ -1,43 +1,81 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Đơn hàng</title>
+    <title>Quản lý Đơn hàng - DevBooks</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/admin/admin.css}">
 </head>
+
 <body>
-
-<h1>Danh sách Đơn hàng</h1>
-
-<div th:if="${orders.isEmpty()}">
-    <p>Chưa có đơn hàng nào.</p>
+<div class="sidebar">
+    <div>
+        <div class="brand">
+            <a th:href="@{/}">
+                <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo">
+            </a>
+        </div>
+        <a th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a th:href="@{/admin/books}"><i class="bi bi-book"></i> Sách</a>
+        <a th:href="@{/admin/categories}"><i class="bi bi-folder"></i> Danh mục</a>
+        <a th:href="@{/admin/users}"><i class="bi bi-people"></i> Người dùng</a>
+        <a th:href="@{/admin/orders}" class="active"><i class="bi bi-receipt"></i> Đơn hàng</a>
+    </div>
+    <div>
+        <a th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+    </div>
 </div>
 
-<table border="1" th:if="${!orders.isEmpty()}">
-    <thead>
-    <tr>
-        <th>ID Đơn hàng</th>
-        <th>Tên Khách hàng</th>
-        <th>Ngày đặt</th>
-        <th>Tổng tiền</th>
-        <th>Trạng thái</th>
-        <th>Hành động</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="order : ${orders}">
-        <td th:text="${order.id}">1</td>
-        <td th:text="${order.user.fullName}">Nguyễn Văn A</td>
-        <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">01-01-2025</td>
-        <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">100,000 VNĐ</td>
-        <td th:text="${order.status}">Chờ xử lý</td>
-        <td>
-            <a th:href="@{/admin/orders/edit/{id}(id=${order.id})}">Sửa trạng thái</a>
-            |
-            <a th:href="@{/admin/orders/{id}(id=${order.id})}">Xem Chi tiết</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div class="main-content">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2>Quản lý Đơn hàng</h2>
+        </div>
 
+        <div th:if="${orders.isEmpty()}" class="alert alert-info">
+            Chưa có đơn hàng nào.
+        </div>
+
+        <div class="chart-card" th:if="${!orders.isEmpty()}">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID Đơn hàng</th>
+                    <th>Tên Khách hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}">
+                    <td th:text="${order.id}">1</td>
+                    <td th:text="${order.user.fullName}">Nguyễn Văn A</td>
+                    <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+                    <td>
+                            <span th:text="${order.status}"
+                                  th:classappend="${order.status == 'Đã giao'} ? 'text-success' : (${order.status == 'Đã hủy'} ? 'text-danger' : 'text-warning')">
+                            </span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/orders/edit/{id}(id=${order.id})}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </a>
+                        <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i> Xem
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

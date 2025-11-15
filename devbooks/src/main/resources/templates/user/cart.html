@@ -87,7 +87,7 @@
                     <span id="cart-final-total" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
                 </div>
 
-                <a th:href="@{/checkout}" class="btn-checkout">Tiến hành Thanh toán</a>
+                <a th:href="@{/order/checkout}" class="btn-checkout">Tiến hành Thanh toán</a>
                 <a th:href="@{/products}" class="btn-continue-shopping">Tiếp tục mua sắm</a>
             </aside>
 

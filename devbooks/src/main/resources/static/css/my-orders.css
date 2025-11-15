@@ -1,0 +1,214 @@
+/* ===================================== */
+/* TRANG ĐƠN HÀNG CỦA TÔI (my-orders.css) */
+/* ===================================== */
+.orders-page-container {
+    padding: 40px 0;
+    background-color: #f9f9f9;
+    min-height: calc(100vh - 120px);
+}
+
+.page-title {
+    font-size: 2.2em;
+    color: #333;
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 700;
+}
+
+/* Thông báo */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+/* Khi không có đơn hàng */
+.orders-empty {
+    text-align: center;
+    padding: 50px 0;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.orders-empty p {
+    font-size: 1.3em;
+    color: #555;
+    margin-bottom: 25px;
+}
+.btn-shopping {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* Danh sách đơn hàng */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.07);
+    border: 1px solid #eee;
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px 20px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+    border-radius: 8px 8px 0 0;
+}
+.order-card-header > div {
+    font-size: 0.9em;
+    color: #555;
+}
+.order-card-header strong {
+    color: #333;
+}
+.order-total-price {
+    font-weight: bold;
+    color: #e34c38; /* Màu đỏ giá */
+}
+
+/* Trạng thái */
+.order-status {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.order-card-body {
+    padding: 20px;
+}
+.order-card-body p {
+    margin: 0 0 10px 0;
+    color: #444;
+}
+
+/* Nút bấm */
+.order-card-actions {
+    padding: 0 20px 20px 20px;
+    text-align: right;
+}
+.btn-cancel-order {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
+    transition: background-color 0.3s;
+}
+.btn-cancel-order:hover {
+    background-color: #c82333;
+}
+/* ... (Code .btn-cancel-order:hover của bạn) ... */
+
+/* === CSS MỚI CHO CHI TIẾT ĐƠN HÀNG === */
+.order-details-list {
+    margin-top: 15px;
+    border-top: 1px dashed #ddd;
+    padding-top: 15px;
+}
+.order-details-list > strong {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.order-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    padding: 5px;
+}
+.detail-item-image {
+    width: 40px;
+    height: 50px;
+    object-fit: contain;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.detail-item-info {
+    flex-grow: 1;
+}
+.detail-item-title {
+    font-weight: 500;
+    color: #333;
+    display: block;
+}
+.detail-item-author {
+    font-size: 0.9em;
+    color: #777;
+}
+.detail-item-quantity {
+    color: #555;
+    flex-shrink: 0;
+}
+.detail-item-price {
+    font-weight: 600;
+    color: #555;
+    flex-shrink: 0;
+    min-width: 80px;
+    text-align: right;
+}
+
+/* Responsive cho phần chi tiết (Mobile) */
+@media (max-width: 768px) {
+    .order-detail-item {
+        flex-wrap: wrap; /* Cho phép xuống dòng */
+    }
+    .detail-item-info {
+        width: 100%;
+        order: -1; /* Đẩy tên sách lên đầu */
+        margin-left: 50px; /* Căn lề với ảnh */
+        margin-top: -55px;
+        margin-bottom: 5px;
+    }
+    .detail-item-price {
+        width: 100%;
+        text-align: right;
+        margin-left: 50px;
+    }
+}

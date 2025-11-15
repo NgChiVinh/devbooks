@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn Hàng Của Tôi - DevBooks</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" th:href="@{/css/style.css(v=${#dates.createNow().getTime()})}">
+    <link rel="stylesheet" th:href="@{/css/my-orders.css(v=${#dates.createNow().getTime()})}">
+</head>
+
+<body>
+
+<div th:insert="~{fragments/header-snippet :: navbar}"></div>
+
+<main class="orders-page-container">
+    <div class="container">
+
+        <h1 class="page-title">Đơn Hàng Của Tôi</h1>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="orders-empty" th:if="${orders == null OR orders.isEmpty()}">
+            <p>Bạn chưa có đơn hàng nào.</p>
+            <a th:href="@{/products}" class="btn-shopping">Bắt đầu mua sắm</a>
+        </div>
+
+        <div class="orders-list" th:if="${!orders.isEmpty()}">
+
+            <div th:each="order : ${orders}" class="order-card">
+                <div class="order-card-header">
+                    <div>
+                        <strong>Mã đơn hàng:</strong>
+                        <span th:text="'#' + ${order.id}">#12345</span>
+                    </div>
+                    <div>
+                        <strong>Ngày đặt:</strong>
+                        <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">14/11/2025</span>
+                    </div>
+                    <div>
+                        <strong>Tổng tiền:</strong>
+                        <span class="order-total-price"
+                              th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">
+                              200.000 VNĐ
+                        </span>
+                    </div>
+                    <div>
+                        <strong>Trạng thái:</strong>
+                        <span class="order-status"
+                              th:classappend="${order.status == 'Chờ xử lý' ? 'status-pending' : (order.status == 'Đã hủy' ? 'status-cancelled' : 'status-completed')}"
+                              th:text="${order.status}">
+                              Chờ xử lý
+                        </span>
+                    </div>
+                </div>
+
+                <div class="order-card-body">
+                    <p><strong>Địa chỉ giao hàng:</strong> <span th:text="${order.shippingAddress} + ', ' + ${order.city}"></span></p>
+                    <p><strong>Phương thức thanh toán:</strong> <span th:text="${order.paymentMethod}"></span></p>
+
+                    <div class="order-details-list">
+                        <strong>Các sản phẩm đã mua:</strong>
+
+                        <div th:each="detail : ${order.orderDetails}" class="order-detail-item">
+                            <img th:src="${detail.book.coverImageUrl ?: '/images/default.png'}" class="detail-item-image" />
+                            <div class="detail-item-info">
+                                <span class="detail-item-title" th:text="${detail.book.title}">Tên Sách</span>
+                                <span class="detail-item-author" th:text="${detail.book.author}">Tác giả</span>
+                            </div>
+                            <span class="detail-item-quantity" th:text="'Số lượng: ' + ${detail.quantity}">x1</span>
+                            <span class="detail-item-price" th:text="${#numbers.formatDecimal(detail.pricePerUnit * detail.quantity, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">Giá</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-card-actions">
+                    <form th:if="${order.status == 'Chờ xử lý'}"
+                          th:action="@{/order/cancel/{id}(id=${order.id})}"
+                          method="post"
+                          class="cancel-form"> <button type="submit" class="btn-cancel-order">Hủy Đơn Hàng</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div th:insert="~{fragments/footer-snippet :: footer}"></div>
+
+<script th:src="@{/js/dropdown.js}"></script>
+<script th:src="@{/js/my-orders.js(v=${#dates.createNow().getTime()})}"></script>
+</body>
+</html>

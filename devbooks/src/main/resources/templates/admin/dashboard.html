@@ -2,164 +2,252 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Quản trị</title>
+    <title>Admin Dashboard - DevBooks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
-          display: flex;
           font-family: 'Segoe UI', sans-serif;
-          background-color: #f4f6f9;
+          display: flex;
+          margin: 0;
+          background-color: #f1f2f3; /* xám nhạt */
+          color: #333;
         }
 
         /* Sidebar */
-        .sidebar {
-          width: 230px;
-          background-color: #2c3e50;
-          color: white;
-          height: 100vh;
-          padding-top: 30px;
-          position: fixed;
-        }
+.sidebar {
+  width: 240px;
+  background-color: #0F172A; /* Xanh navy rất tối giúp logo nổi bật */
+  height: 100vh;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
-        .sidebar h2 {
-          text-align: center;
-          margin-bottom: 30px;
-          font-weight: bold;
-          font-size: 20px;
-        }
+/* Khung chứa brand */
+.sidebar .brand {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #1E293B;
+}
 
-        .sidebar a {
-          display: block;
-          color: #ecf0f1;
-          padding: 12px 20px;
-          text-decoration: none;
-          transition: background 0.3s;
-        }
+/* Logo nổi bật */
+.sidebar .brand img {
+  width: 130px;
+  height: auto;
+}
 
-        .sidebar a:hover,
-        .sidebar a.active {
-          background-color: #34495e;
-          font-weight: 600;
-        }
+/* Link menu */
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  color: #E2E8F0; /* xám nhạt - dễ nhìn trên nền tối */
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  font-size: 15px;
+}
+
+.sidebar a i {
+  color: #F1F5F9; /* icon sáng */
+}
+
+/* Hover + Active */
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: #1E3A8A; /* xanh dương sáng */
+  color: #fff;
+}
+
+.sidebar a:hover i,
+.sidebar a.active i {
+  color: #fff;
+}
+
 
         /* Main Content */
         .main-content {
-          margin-left: 230px;
+          margin-left: 240px;
           padding: 30px;
-          flex: 1;
-        }
-
-        .card {
-          background: white;
-          border: none;
-          border-radius: 8px;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-          padding: 20px;
-        }
-
-        table {
-          background: white;
-          border-radius: 8px;
           width: 100%;
-          margin-top: 20px;
         }
 
-        th, td {
-          padding: 12px;
-          text-align: left;
+        .dashboard-container {
+          max-width: 1200px;
+          margin: 0 auto;
         }
 
-        th {
-          background: #2c3e50;
-          color: white;
+        .dashboard-header h2 {
+          font-weight: 700;
+          color: #2f3542;
+          margin-bottom: 25px;
+        }
+
+        /* 3 ô thống kê */
+        .stats-row {
+          display: flex;
+          gap: 20px;
+          justify-content: center;
+          margin-bottom: 30px;
+          flex-wrap: wrap;
+        }
+
+        .stats-card {
+          flex: 1;
+          min-width: 250px;
+          background: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+          padding: 25px 0;
+          text-align: center;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stats-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card h5 {
+          color: #6b7280;
+          font-weight: 600;
+        }
+
+        .stats-card h3 {
+          color: #111827;
+          font-size: 22px;
+          font-weight: 700;
+          margin-top: 10px;
+        }
+
+        /* Biểu đồ */
+        .charts-row {
+          display: flex;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        .chart-card {
+          flex: 1;
+          min-width: 350px;
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-card h5 {
+          color: #475569;
+          font-weight: 600;
+          margin-bottom: 15px;
+        }
+
+        canvas {
+          width: 100% !important;
+          height: 280px !important;
+        }
+
+        footer {
+          text-align: center;
+          padding: 15px;
+          font-size: 14px;
+          color: #666;
+          margin-top: 30px;
         }
     </style>
 </head>
-<body>
 
+<body>
 <!-- Sidebar -->
 <div class="sidebar">
-    <h2>Admin Panel</h2>
-    <a href="/admin/dashboard" class="active">📊 Tổng quan</a>
-    <a href="/admin/books">📚 Quản lý Sách</a>
-    <a href="/admin/categories">🗂 Danh mục</a>
-    <a href="/admin/users">👤 Người dùng</a>
-    <a href="/admin/orders">🧾 Đơn hàng</a>
+    <div>
+        <div class="brand">
+            <a th:href="@{/}">
+                <img th:src="@{/images/devbooks-logo.png}" alt="DevBooks Logo">
+            </a>
+        </div>
+        <a th:href="@{/admin/dashboard}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a th:href="@{/admin/books}"><i class="bi bi-book"></i> Sách</a>
+        <a th:href="@{/admin/categories}"><i class="bi bi-folder"></i> Danh mục</a>
+        <a th:href="@{/admin/users}"><i class="bi bi-people"></i> Người dùng</a>
+        <a th:href="@{/admin/orders}"><i class="bi bi-receipt"></i> Đơn hàng</a>
+    </div>
+
+    <div>
+        <a th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+    </div>
 </div>
 
-<!-- Main content -->
+<!-- Main Content -->
 <div class="main-content">
-    <h2 class="mb-4">Tổng quan thống kê</h2>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2>Thống kê hệ thống</h2>
+        </div>
 
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <h5>Tổng doanh thu</h5>
-                <h3 th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</h3>
+        <div class="stats-row">
+            <div class="stats-card">
+                <h5>Doanh thu</h5>
+                <h3 th:text="${#numbers.formatDecimal(totalRevenue, 0, 'POINT', 0, 'COMMA')} + ' VNĐ'">1.600.000 VNĐ</h3>
+            </div>
+            <div class="stats-card">
+                <h5>Đơn hàng</h5>
+                <h3 th:text="${totalOrders}">5</h3>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <h5>Tổng số đơn hàng</h5>
-                <h3 th:text="${totalOrders}">0</h3>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <h5>Doanh thu theo tháng</h5>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h5>Trạng thái đơn hàng</h5>
+                <canvas id="orderChart"></canvas>
             </div>
         </div>
-    </div>
 
-    <div class="card mb-4">
-        <h5>Biểu đồ Doanh thu theo tháng</h5>
-        <canvas id="revenueChart" height="100"></canvas>
-    </div>
-
-    <div class="card">
-        <h5>Top 5 Sách Bán Chạy</h5>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>ID Sách</th>
-                <th>Tên Sách</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="book : ${topSellingBooks}">
-                <td th:text="${book.id}">1</td>
-                <td th:text="${book.title}">Tên sách</td>
-            </tr>
-            </tbody>
-        </table>
-        <div th:if="${topSellingBooks == null OR topSellingBooks.isEmpty()}">
-            <p class="text-muted">Chưa có dữ liệu sách bán chạy.</p>
-        </div>
+        <footer>
+            © 2025 DevBooks Admin Dashboard
+        </footer>
     </div>
 </div>
 
+<!-- Chart.js -->
 <script>
-    const ctx = document.getElementById('revenueChart');
-    new Chart(ctx, {
+    new Chart(document.getElementById('revenueChart'), {
       type: 'line',
       data: {
-        labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5'],
+        labels: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6'],
         datasets: [{
           label: 'Doanh thu (VNĐ)',
-          data: [12000000, 18000000, 15000000, 20000000, 25000000],
+          data: [12000000, 18000000, 15000000, 20000000, 25000000, 30000000],
           borderWidth: 3,
-          borderColor: '#2c3e50',
-          tension: 0.3,
+          borderColor: '#1d4ed8',
+          tension: 0.4,
           fill: true,
-          backgroundColor: 'rgba(44, 62, 80, 0.1)'
+          backgroundColor: 'rgba(37,99,235,0.15)'
         }]
       },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    new Chart(document.getElementById('orderChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Đang xử lý', 'Đã giao', 'Đã hủy'],
+        datasets: [{
+          data: [45, 35, 20],
+          backgroundColor: ['#60a5fa', '#34d399', '#f87171']
+        }]
+      },
+      options: { responsive: true }
     });
 </script>
-
 </body>
 </html>

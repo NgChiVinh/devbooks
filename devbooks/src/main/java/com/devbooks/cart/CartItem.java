@@ -1,7 +1,7 @@
-package com.devbooks.cart; // (Hoặc package entity của bạn nếu bạn di chuyển nó)
+package com.devbooks.cart;
 
 import com.devbooks.entity.Book;
-import com.devbooks.entity.Cart; // Sẽ hết báo lỗi sau khi bạn tạo file Cart.java
+import com.devbooks.entity.Cart;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,4 +26,16 @@ public class CartItem {
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
+
+    // ✅ THÊM: Tự viết toString() để phá vỡ vòng lặp
+    @Override
+    public String toString() {
+        return "CartItem{" +
+                "id=" + id +
+                ", quantity=" + quantity +
+                ", bookId=" + (book != null ? book.getId() : null) +
+                ", cartId=" + (cart != null ? cart.getId() : null) +
+                '}';
+        // Chỉ in ID, KHÔNG in toàn bộ Object
+    }
 }

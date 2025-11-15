@@ -45,25 +45,37 @@ public class CartService {
                 });
     }
 
+    /**
+     * ✅ HÀM ĐÃ CẬP NHẬT LOGIC TỒN KHO
+     */
     @Transactional
-    public void addBookToCart(User user, Long bookId, int quantity) {
+    public void addBookToCart(User user, Long bookId, int quantityToAdd) {
         Cart cart = getCartByUser(user);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sách"));
 
-        Optional<CartItem> existingItem = cart.getItems().stream()
+        Optional<CartItem> existingItemOpt = cart.getItems().stream()
                 .filter(item -> item.getBook().getId().equals(bookId))
                 .findFirst();
 
-        if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + quantity);
+        int currentQuantityInCart = existingItemOpt.map(CartItem::getQuantity).orElse(0);
+        int newQuantity = currentQuantityInCart + quantityToAdd;
+
+        // === LOGIC KIỂM TRA TỒN KHO ===
+        if (newQuantity > book.getStockQuantity()) {
+            throw new RuntimeException("Số lượng tồn kho không đủ (Chỉ còn " + book.getStockQuantity() + " sản phẩm)");
+        }
+        // === KẾT THÚC KIỂM TRA ===
+
+        if (existingItemOpt.isPresent()) {
+            CartItem item = existingItemOpt.get();
+            item.setQuantity(newQuantity);
             cartItemRepository.save(item);
         } else {
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setBook(book);
-            newItem.setQuantity(quantity);
+            newItem.setQuantity(newQuantity);
             cartItemRepository.save(newItem);
             cart.getItems().add(newItem);
         }
@@ -107,9 +119,24 @@ public class CartService {
         return cart;
     }
 
-    public void addBookToSessionCart(HttpSession session, Long bookId, int quantity) {
+    /**
+     * ✅ HÀM ĐÃ CẬP NHẬT LOGIC TỒN KHO
+     */
+    public void addBookToSessionCart(HttpSession session, Long bookId, int quantityToAdd) {
         Map<Long, Integer> cart = getSessionCart(session);
-        cart.put(bookId, cart.getOrDefault(bookId, 0) + quantity);
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sách"));
+
+        int currentQuantityInCart = cart.getOrDefault(bookId, 0);
+        int newQuantity = currentQuantityInCart + quantityToAdd;
+
+        // === LOGIC KIỂM TRA TỒN KHO ===
+        if (newQuantity > book.getStockQuantity()) {
+            throw new RuntimeException("Số lượng tồn kho không đủ (Chỉ còn " + book.getStockQuantity() + " sản phẩm)");
+        }
+        // === KẾT THÚC KIỂM TRA ===
+
+        cart.put(bookId, newQuantity);
         session.setAttribute("cart", cart);
     }
 
@@ -142,9 +169,8 @@ public class CartService {
                 .sum();
     }
 
-    // ✅ === BẮT ĐẦU 4 HÀM MỚI BỊ THIẾU ===
+    // === HÀM CẬP NHẬT/XÓA (CHO TRANG CART.HTML) ===
 
-    // 1. CẬP NHẬT SỐ LƯỢNG (CHO USER DB)
     @Transactional
     public double updateItemQuantity(User user, Long bookId, int quantity) {
         Cart cart = getCartByUser(user);
@@ -153,14 +179,19 @@ public class CartService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy item"));
 
-        if (quantity < 1) { quantity = 1; } // Giữ tối thiểu 1
+        if (quantity < 1) { quantity = 1; }
+
+        // ✅ THÊM KIỂM TRA TỒN KHO KHI CẬP NHẬT
+        if (quantity > item.getBook().getStockQuantity()) {
+            throw new RuntimeException("Số lượng tồn kho không đủ (Chỉ còn " + item.getBook().getStockQuantity() + " sản phẩm)");
+        }
+
         item.setQuantity(quantity);
         cartItemRepository.save(item);
 
-        return item.getBook().getPrice() * quantity; // Trả về tổng tiền của item này
+        return item.getBook().getPrice() * quantity;
     }
 
-    // 2. XÓA ITEM (CHO USER DB)
     @Transactional
     public void removeItem(User user, Long bookId) {
         Cart cart = getCartByUser(user);
@@ -169,27 +200,31 @@ public class CartService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy item"));
 
-        cart.getItems().remove(item); // Xóa khỏi quan hệ
-        cartItemRepository.delete(item); // Xóa khỏi DB
+        cart.getItems().remove(item);
+        cartItemRepository.delete(item);
     }
 
-    // 3. CẬP NHẬT SỐ LƯỢNG (CHO KHÁCH SESSION)
     public double updateSessionItemQuantity(HttpSession session, Long bookId, int quantity) {
         Map<Long, Integer> cart = getSessionCart(session);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sách"));
 
         if (quantity < 1) { quantity = 1; }
-        cart.put(bookId, quantity); // Ghi đè số lượng
+
+        // ✅ THÊM KIỂM TRA TỒN KHO KHI CẬP NHẬT
+        if (quantity > book.getStockQuantity()) {
+            throw new RuntimeException("Số lượng tồn kho không đủ (Chỉ còn " + book.getStockQuantity() + " sản phẩm)");
+        }
+
+        cart.put(bookId, quantity);
         session.setAttribute("cart", cart);
 
-        return book.getPrice() * quantity; // Trả về tổng tiền của item này
+        return book.getPrice() * quantity;
     }
 
-    // 4. XÓA ITEM (CHO KHÁCH SESSION)
     public void removeSessionItem(HttpSession session, Long bookId) {
         Map<Long, Integer> cart = getSessionCart(session);
-        cart.remove(bookId); // Xóa khỏi Map
+        cart.remove(bookId);
         session.setAttribute("cart", cart);
     }
 }
