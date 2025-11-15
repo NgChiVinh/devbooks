@@ -22,3 +22,4 @@ EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
 # Force rebuild
+# Force rebuild
